@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container, Content, Text, StyleProvider, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right } from 'native-base';
+import { Container, Content, Text, StyleProvider, Left, Title, CheckBox,Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -12,7 +12,8 @@ export default class MainScreen extends Component {
         super(props);
         this.state = {
             active: false,
-            date: new Date()
+            date: new Date(),
+            delete: false
         }
         this.storeData = this.storeData.bind(this);
         this.getData = this.getData.bind(this);
@@ -103,12 +104,18 @@ export default class MainScreen extends Component {
                                 style={{ width: "90%" }}
                             />)}
                         <Text>{this.state.date.toDateString()}</Text>
+
+
                         <List>
                             <Separator bordered>
                                 <Text>MIDFIELD</Text>
                             </Separator>
-                            <ListItem button onPress={() => { Alert.alert("aaa"); }}>
-                                <Body>
+                            <ListItem noIndent thumbnail button onPress={() => { Alert.alert("aaa"); }} onLongPress={() => {this.setState({delete: true})}}>
+                              
+                                {this.state.delete ? (
+          <Left style={{marginLeft: -17, marginRight: 10}}><CheckBox checked={true} /></Left>
+        ) : <Left style={{marginLeft: -20}}></Left>}
+                                <Body >
                                     <Text>Kumar Pratik</Text>
                                     <Text note>Doing what you like will always keep you happy . .</Text>
                                 </Body>

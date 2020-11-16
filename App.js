@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { Alert } from 'react-native';
 import * as Font from 'expo-font';
 import MainTab from './MainTab';
+import Ordering from './Ordering';
 import Add from './Add';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
@@ -75,9 +76,9 @@ class MainScreen extends Component {
           {(props) =>
             <StyleProvider style={getTheme(material)}>
               <Container>
-                <Tabs renderTabBar={() => <ScrollableTab style={{height: '6%'}} />}>
-                  <Tab heading="MainTab"  tabStyle={{ backgroundColor: "#2b82c9" }}  activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <MainTab {...props} />
+                <Tabs renderTabBar={() => <ScrollableTab style={{height: '6%'}} />}  initialPage={1} >
+                  <Tab heading="Order"  tabStyle={{ backgroundColor: "#2b82c9" }}  activeTabStyle={{ backgroundColor: "#2b82c9" }}>
+                    <Ordering {...props} />
                   </Tab>
                   <Tab heading="MainTab" tabStyle={{ backgroundColor: "#2b82c9" }}  activeTabStyle={{ backgroundColor: "#2b82c9" }}>
                     <MainTab {...props} />
@@ -99,8 +100,6 @@ class MainScreen extends Component {
           {(props) => <Add {...props} />}
         </Stack.Screen>
       </Stack.Navigator>
-
-
 
     );
   }

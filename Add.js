@@ -70,12 +70,12 @@ export default class ThemeExample extends Component {
     }
   }
 
-  async handleAddItem(obj){
+  async handleAddItem(obj) {
 
   }
 
-  async handleEditItem(obj){
-    
+  async handleEditItem(obj) {
+
   }
 
   render() {
@@ -83,6 +83,8 @@ export default class ThemeExample extends Component {
       <StyleProvider style={getTheme(material)}>
         <Container>
           <Content>
+
+            
             <Text>
               I have changed the text color.
             </Text>
@@ -93,16 +95,16 @@ export default class ThemeExample extends Component {
             <Button primary onPress={this.showDatepicker}><Text>Show date picker!</Text></Button>
 
             {this.state.show && (
-                      <DateTimePicker
-                        testID="dateTimePicker"
-                        value={this.state.date}
-                        mode={this.state.mode}
-                        is24Hour={true}
-                        display="default"
-                        onChange={this.onChange}
-                        style={{width: "90%"}}
-                      />)}  
-<Text>{this.state.date.toDateString()}</Text>
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={this.state.date}
+                mode={this.state.mode}
+                is24Hour={true}
+                display="default"
+                onChange={this.onChange}
+                style={{ width: "90%" }}
+              />)}
+            <Text>{this.state.date.toDateString()}</Text>
             <List>
               <Separator bordered>
                 <Text>MIDFIELD</Text>
