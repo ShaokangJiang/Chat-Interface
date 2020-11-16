@@ -1,4 +1,4 @@
-### Financial Organization app
+# Financial Organization app
 
 Download from release (Still in pre-release)
 
