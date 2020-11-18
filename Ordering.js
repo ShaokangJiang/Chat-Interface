@@ -6,7 +6,6 @@ import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
 import { Overlay } from 'react-native-elements';
 import Modal from 'react-native-modal';
-
 class Example extends Component {
 
   state = {
@@ -61,7 +60,8 @@ class Order extends Component {
       data: this.props.category.Expense,
       visible: false,
       addText: "",
-      addCategory: ""
+      addCategory: "",
+      notification: "",
     }
     this.setVisible = this.setVisible.bind(this);
   }
@@ -73,19 +73,40 @@ class Order extends Component {
 
   renderItem = ({ item, index, move, moveEnd, isActive }) => {
     return (
-      <TouchableOpacity
+      <ListItem thumbnail
         style={{
-          height: 60,
-          backgroundColor: '#D3D3D3',
-          alignItems: 'center',
-          justifyContent: 'center'
+          height: 70
         }}
         onLongPress={move}
         onPressOut={moveEnd}>
-        <ListItem>
+        <Left style={{ marginLeft: 0 }}><Icon type="MaterialIcons" name="menu" /></Left>
+        <Body >
           <Text>{item}</Text>
-        </ListItem>
-      </TouchableOpacity>
+        </Body>
+        <Right><Button transparent iconLeft onPress={() => {
+          Alert.alert(
+            'Remove confirmation',
+            'Are you sure to delete? This effort can not be redo.',
+            [
+              {
+                text: 'Cancel',
+                onPress: () => { },
+                style: 'cancel'
+              },
+              {
+                text: 'OK', onPress: () => {
+                  let h = this.props.category;
+                  h.Expense.splice(h.Expense.indexOf(item), 1);
+                  this.props.handleModifyCategory(h);
+                }
+              }
+            ],
+            { cancelable: false }
+          );
+        }}>
+          <Icon type="MaterialIcons" name='delete' style={{ color: 'red' }} />
+        </Button></Right>
+      </ListItem>
     )
   }
 
@@ -94,7 +115,31 @@ class Order extends Component {
     for (let k of this.props.category.Income) {
       re.push(
         <ListItem key={k}>
-          <Text>{k}</Text>
+          <Body><Text>{k}</Text></Body>
+          <Right><Button transparent iconLeft onPress={() => {
+
+            Alert.alert(
+              'Remove confirmation',
+              'Are you sure to delete? This effort can not be redo.',
+              [
+                {
+                  text: 'Cancel',
+                  onPress: () => { },
+                  style: 'cancel'
+                },
+                {
+                  text: 'OK', onPress: () => {
+                    let h = this.props.category;
+                    h.Income.splice(h.Income.indexOf(k), 1);
+                    this.props.handleModifyCategory(h);
+                  }
+                }
+              ],
+              { cancelable: false }
+            );
+          }}>
+            <Icon type="MaterialIcons" name='delete' style={{ color: 'red' }} />
+          </Button></Right>
         </ListItem>
       );
     }
@@ -112,22 +157,22 @@ class Order extends Component {
             <Separator bordered>
               <Text>Income</Text>
             </Separator>
-
-
             {this.getIncome()}
-
-
             <Separator bordered>
               <Text>Expense</Text>
             </Separator>
           </List>
 
           <DraggableFlatList
-            data={this.state.data}
+            data={this.props.category.Expense}
             renderItem={this.renderItem}
             keyExtractor={(item, index) => `draggable-item-${item}`}
             scrollPercent={5}
-            onMoveEnd={({ data }) => this.setState({ data })}
+            onMoveEnd={({ data }) => {
+              let h = this.props.category;
+              h.Expense = data;
+              this.props.handleModifyCategory(h);
+            }}
           />
 
           <Fab
@@ -140,36 +185,46 @@ class Order extends Component {
             <Icon name="add" />
           </Fab>
           <View style={{ height: '30%' }}>
-            <Modal isVisible={this.state.visible} onBackdropPress={() => { this.setVisible() }}
-             >
+            <Modal isVisible={this.state.visible} onBackdropPress={() => { this.setVisible() }}>
 
               <View style={{ backgroundColor: 'white', justifyContent: 'space-between', flexDirection: 'column', alignItems: 'center' }}>
-              <Form>
-            <Item floatingLabel last style={{paddingBottom: '3%', alignItems: 'stretch', width: '90%'}}>
-              <Label >Name</Label>
-              <Input onChange={(event) => this.setState({addText: event.nativeEvent.text})}/>
-            </Item>
-            <Item style={{ borderColor: 'transparent' , marginTop: '6%'}}>
-       <Text>{"Category:"}</Text>
-       <Right>
-            <Item picker >
-                          <Picker
-                mode="dropdown"
-                iosIcon={<Icon name="arrow-down" />}
-                placeholder="Pick Category"
-                placeholderStyle={{ color: "#bfc6ea" }}
-                placeholderIconColor="#007aff"
-                selectedValue={this.state.addCategory}
-                onValueChange={(value) => this.setState({addCategory:value})}
-              >
-                <Picker.Item label="Income" value="Income" />
-                <Picker.Item label="Expense" value="Expense" />
-              </Picker>
-            </Item></Right>
-</Item>
-            </Form>
+                <Form>
+                  <Text style={{ color: 'red' }}>{this.state.notification}</Text>
+                  <Item floatingLabel last style={{ paddingBottom: '3%', alignItems: 'stretch', width: '90%' }}>
+                    <Label >Name</Label>
+                    <Input onChange={(event) => this.setState({ addText: event.nativeEvent.text })} />
+                  </Item>
+                  <Item style={{ borderColor: 'transparent', marginTop: '6%' }}>
+                    <Text>{"Category:"}</Text>
+                    <Right>
+                      <Item picker >
+                        <Picker
+                          mode="dropdown"
+                          iosIcon={<Icon name="arrow-down" />}
+                          placeholder="Pick Category"
+                          placeholderStyle={{ color: "#bfc6ea" }}
+                          placeholderIconColor="#007aff"
+                          selectedValue={this.state.addCategory}
+                          onValueChange={(value) => this.setState({ addCategory: value })}
+                        >
+                          <Picker.Item label="Income" value="Income" />
+                          <Picker.Item label="Expense" value="Expense" />
+                        </Picker>
+                      </Item></Right>
+                  </Item>
+                </Form>
 
-                <Button block style={{ margin: 15, marginTop: 50 }}>
+                <Button block style={{ margin: '5%', marginTop: '12%' }}
+                  onPress={() => {
+                    let h = this.props.category;
+                    if (h[this.state.addCategory].indexOf(this.state.addText) === -1) {
+                      h[this.state.addCategory].push(this.state.addText);
+                      this.props.handleModifyCategory(h);
+                      this.setVisible();
+                    } else {
+                      this.setState({ notification: "Dupicate record" });
+                    }
+                  }}>
                   <Text>Add</Text>
                 </Button>
               </View>

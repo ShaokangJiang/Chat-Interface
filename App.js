@@ -28,12 +28,13 @@ class MainScreen extends Component {
     this.handleAddItem = this.handleAddItem.bind(this);
     this.handleEditItem = this.handleEditItem.bind(this)
     this.getOtherTabs = this.getOtherTabs.bind(this);
+    this.handleModifyCategory = this.handleModifyCategory.bind(this);
   }
 
 
   async storeData(key, value) {
     try {
-      await AsyncStorage.setItem(key, value)
+      await AsyncStorage.setItem(key, JSON.stringify(value));
     } catch (e) { // saving error
     }
   }
@@ -58,7 +59,7 @@ class MainScreen extends Component {
       this.setState({
         category: categories
       });
-      await this.storeData("category", JSON.stringify(categories));
+      await this.storeData("category", categories);
     } else {
       this.setState({
         category: cat
@@ -97,7 +98,7 @@ class MainScreen extends Component {
       this.setState({
         data: data
       });
-      await this.storeData("data", JSON.stringify(data.stringify));
+      await this.storeData("data", data.stringify);
     } else {
       this.setState({
         data: dat
@@ -171,7 +172,7 @@ class MainScreen extends Component {
               <Container>
                 <Tabs renderTabBar={() => <ScrollableTab style={{ height: '6%' }} />} initialPage={1} >
                   <Tab heading="Order" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <Ordering {...props} category={this.state.category} />
+                    <Ordering {...props} category={this.state.category} handleModifyCategory={this.handleModifyCategory}/>
                   </Tab>
                   <Tab heading="Home" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
                     <Home {...props} data={this.state.data} />
