@@ -7,6 +7,7 @@ import { Alert } from 'react-native';
 import * as Font from 'expo-font';
 import MainTab from './MainTab';
 import Ordering from './Ordering';
+import Home from './Home';
 import Add from './Add';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
@@ -18,14 +19,17 @@ class MainScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: [],
+      data: {},
+      category: {},
       loading: true
     }
     this.storeData = this.storeData.bind(this);
     this.getData = this.getData.bind(this);
     this.handleAddItem = this.handleAddItem.bind(this);
     this.handleEditItem = this.handleEditItem.bind(this)
+    this.getOtherTabs = this.getOtherTabs.bind(this);
   }
+
 
   async storeData(key, value) {
     try {
@@ -34,22 +38,89 @@ class MainScreen extends Component {
     }
   }
 
+  async getData(key) {
+    try {
+      const value = await AsyncStorage.getItem(key)
+      return JSON.parse(value);
+    } catch (e) { // error reading value
+    }
+  }
+
+  async initialize() {
+    await AsyncStorage.removeItem("category");
+    await AsyncStorage.removeItem("data");
+    let cat = await this.getData("category");
+    if (cat === null) {//no item, do initialize
+      let categories = {
+        "Income": ["Salary"],
+        "Expense": ["Normal", "Emergent"]
+      };
+      this.setState({
+        category: categories
+      });
+      await this.storeData("category", JSON.stringify(categories));
+    } else {
+      this.setState({
+        category: cat
+      });
+    }
+
+    let dat = await this.getData("data");
+    if (dat === null) {
+      let time = new Date().toLocaleDateString();
+      let data = {};
+      data[time] = [
+        {
+          "Amount": 0,
+          "Income": true,
+          "Category": "Salary",
+          "Title": "Initial Salary",
+          "Description": "Here is your initial salary, it is just a sample"
+        },
+        {
+          "Amount": 0,
+          "Income": false,
+          "Category": "Normal",
+          "Title": "Initial Expense",
+          "Description": "Here is your initial Expense, it is just a sample"
+        },
+        {
+          "Amount": 0,
+          "Income": false,
+          "Category": "Emergent",
+          "Title": "Initial Expense",
+          "Description": "Here is your initial Expense, it is just a sample"
+        }
+      ];
+
+      // console.log(data);
+      this.setState({
+        data: data
+      });
+      await this.storeData("data", JSON.stringify(data.stringify));
+    } else {
+      this.setState({
+        data: dat
+      });
+    }
+  }
+
+  async handleModifyCategory(categories) {
+    this.setState({
+      category: categories
+    });
+    await this.storeData("category", categories);
+  }
+
   async componentDidMount() {
     await Font.loadAsync({
       'Roboto': require('native-base/Fonts/Roboto.ttf'),
       'Roboto_medium': require('native-base/Fonts/Roboto_medium.ttf'),
     })
+    await this.initialize();
     this.setState({ loading: false })
   }
 
-  async getData(key) {
-    try {
-      const value = await AsyncStorage.getItem(key)
-      if (value !== null) { // value previously stored
-      }
-    } catch (e) { // error reading value
-    }
-  }
 
   async handleAddItem(obj) {
 
@@ -57,6 +128,27 @@ class MainScreen extends Component {
 
   async handleEditItem(obj) {
 
+  }
+
+  getOtherTabs(props) {
+    let tabs = [];
+    for (let i of Object.values(this.state.category.Income)) {
+      //console.log(i);
+      tabs.push(
+        <Tab heading={i} key={i} tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
+          <MainTab {...props} category={i} data={this.state.data} />
+        </Tab>
+      );
+    }
+    for (let i of Object.values(this.state.category.Expense)) {
+      //console.log(i);
+      tabs.push(
+        <Tab heading={i} key={i} tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
+          <MainTab {...props} category={i} data={this.state.data} />
+        </Tab>
+      );
+    }
+    return tabs;
   }
 
   render() {
@@ -67,36 +159,30 @@ class MainScreen extends Component {
     }
     return (
 
-      <Stack.Navigator initialRouteName="Main"  screenOptions={{ 
+      <Stack.Navigator initialRouteName="Organize" screenOptions={{
         headerStyle: {
           backgroundColor: '#2b82c9',
         },
-        headerTintColor: '#fff' }}>
-        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} />}}>
+        headerTintColor: '#fff'
+      }}>
+        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} /> }}>
           {(props) =>
             <StyleProvider style={getTheme(material)}>
               <Container>
-                <Tabs renderTabBar={() => <ScrollableTab style={{height: '6%'}} />}  initialPage={1} >
-                  <Tab heading="Order"  tabStyle={{ backgroundColor: "#2b82c9" }}  activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <Ordering {...props} />
+                <Tabs renderTabBar={() => <ScrollableTab style={{ height: '6%' }} />} initialPage={1} >
+                  <Tab heading="Order" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
+                    <Ordering {...props} category={this.state.category} />
                   </Tab>
-                  <Tab heading="MainTab" tabStyle={{ backgroundColor: "#2b82c9" }}  activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <MainTab {...props} />
+                  <Tab heading="Home" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
+                    <Home {...props} data={this.state.data} />
                   </Tab>
-                  <Tab heading="MainTab" tabStyle={{ backgroundColor: "#2b82c9" }}  activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <MainTab {...props} />
-                  </Tab>
-                  <Tab heading="MainTab" tabStyle={{ backgroundColor: "#2b82c9" }}  activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <MainTab {...props} />
-                  </Tab>
-                  <Tab heading="MainTab" tabStyle={{ backgroundColor: "#2b82c9" }}  activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <MainTab {...props} />
-                  </Tab>
+                  {this.getOtherTabs(props)}
                 </Tabs>
               </Container>
-            </StyleProvider>}
+            </StyleProvider>
+          }
         </Stack.Screen>
-        <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} />}}>
+        <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} /> }}>
           {(props) => <Add {...props} />}
         </Stack.Screen>
       </Stack.Navigator>
@@ -106,23 +192,23 @@ class MainScreen extends Component {
 
 }
 
-const CustomHeader = ({scene, previous, navigation}) => {
-  const {options} = scene.descriptor;
+const CustomHeader = ({ scene, previous, navigation }) => {
+  const { options } = scene.descriptor;
   const title =
     options.headerTitle !== undefined
       ? options.headerTitle
       : options.title !== undefined
-      ? options.title
-      : scene.route.name;
+        ? options.title
+        : scene.route.name;
 
   return (
     <Header>
       {previous ? (
-          <Left><Button transparent onPress={navigation.goBack}>
-            <Icon name="arrow-back" />
-          </Button></Left>
-        ) : <View style={{paddingLeft: 10}}></View>}
-      
+        <Left><Button transparent onPress={navigation.goBack}>
+          <Icon name="arrow-back" />
+        </Button></Left>
+      ) : <View style={{ paddingLeft: 10 }}></View>}
+
       <Body><Title>{title}</Title></Body>
       <Right></Right>
     </Header>

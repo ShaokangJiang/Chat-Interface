@@ -15,67 +15,6 @@ export default class MainScreen extends Component {
             date: new Date(),
             delete: false
         }
-        this.storeData = this.storeData.bind(this);
-        this.getData = this.getData.bind(this);
-        this.setDate = this.setDate.bind(this);
-        this.setMode = this.setMode.bind(this);
-        this.setshow = this.setShow.bind(this);
-        this.onChange = this.onChange.bind(this);
-    }
-
-    setDate(dat) {
-        this.setState({ date: dat });
-    }
-
-    setMode(variable) {
-        this.setState({ mode: variable });
-    }
-
-    setShow(bool) {
-        this.setState({ show: bool });
-    }
-
-    onChange(event, selectedDate) {
-        const currentDate = selectedDate || this.state.date;
-        this.setShow(Platform.OS === 'ios');
-        this.setDate(currentDate);
-    }
-
-    showMode = (currentMode) => {
-        this.setShow(true);
-        this.setMode(currentMode);
-    };
-
-    showDatepicker = () => {
-        this.showMode('date');
-    };
-
-    showTimepicker = () => {
-        this.showMode('time');
-    };
-
-    async storeData(key, value) {
-        try {
-            await AsyncStorage.setItem(key, value)
-        } catch (e) { // saving error
-        }
-    }
-
-    async getData(key) {
-        try {
-            const value = await AsyncStorage.getItem(key)
-            if (value !== null) { // value previously stored
-            }
-        } catch (e) { // error reading value
-        }
-    }
-
-    async handleAddItem(obj) {
-
-    }
-
-    async handleEditItem(obj) {
-
     }
 
     render() {
@@ -85,26 +24,11 @@ export default class MainScreen extends Component {
                 <Container>
                     <Content>
                         <Text>
-                           {this.props.category}
-            </Text>
+                            {this.props.category}
+                        </Text>
                         <Button light><Text> Light </Text></Button>
                         <Button primary><Text> Primary </Text></Button>
                         <Button success><Text> Success </Text></Button>
-
-                        <Button primary onPress={this.showDatepicker}><Text>Show date picker!</Text></Button>
-
-                        {this.state.show && (
-                            <DateTimePicker
-                                testID="dateTimePicker"
-                                value={this.state.date}
-                                mode={this.state.mode}
-                                is24Hour={true}
-                                display="default"
-                                onChange={this.onChange}
-                                style={{ width: "90%" }}
-                            />)}
-                        <Text>{this.state.date.toDateString()}</Text>
-
 
                         <List>
                             <Separator bordered>
