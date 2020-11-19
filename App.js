@@ -149,7 +149,7 @@ class MainScreen extends Component {
 
 
   async handleAddItem(navigation) {
-    console.log(tempObj);
+    //console.log(tempObj);
     // Object {
     //   "amount": 866,
     //   "category": "Salary",
