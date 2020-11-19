@@ -59,8 +59,8 @@ class MainScreen extends Component {
   }
 
   async initialize() {
-    await AsyncStorage.removeItem("category");
-    await AsyncStorage.removeItem("data");
+    //await AsyncStorage.removeItem("category");
+    //await AsyncStorage.removeItem("data");
     let cat = await this.getData("category");
     if (cat === null) {//no item, do initialize
       let categories = {
