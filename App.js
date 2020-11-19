@@ -37,6 +37,11 @@ class MainScreen extends Component {
 
   changeTemp(key, value){
     tempObj[key] = value;
+    //console.log(tempObj);
+  }
+
+  componentWillUnmount(){
+    this.cleanTemp();
   }
 
   cleanTemp(){
@@ -59,8 +64,8 @@ class MainScreen extends Component {
   }
 
   async initialize() {
-    //await AsyncStorage.removeItem("category");
-    //await AsyncStorage.removeItem("data");
+    await AsyncStorage.removeItem("category");
+    await AsyncStorage.removeItem("data");
     let cat = await this.getData("category");
     if (cat === null) {//no item, do initialize
       let categories = {
@@ -144,7 +149,7 @@ class MainScreen extends Component {
 
 
   async handleAddItem(navigation) {
-    // console.log(tempObj);
+    console.log(tempObj);
     // Object {
     //   "amount": 866,
     //   "category": "Salary",
@@ -173,7 +178,7 @@ class MainScreen extends Component {
     newElement["Title"] = tempObj.title;
     newElement["Description"] = tempObj.description;
     temp[a].push(newElement);
-    console.log(temp[a]);
+    //console.log(temp[a]);
     this.setState({data: temp});
     await this.storeData("data", temp);
 

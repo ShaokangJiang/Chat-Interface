@@ -28,6 +28,7 @@ export default class ThemeExample extends Component {
     this.props.changeTemp('date', this.state.date);
     this.props.changeTemp("income", "Income" );
     this.props.changeTemp("description", "   " );
+    this.props.changeTemp("category", this.props.category.Income[0] );
   }
 
   setDate(dat) {
@@ -66,14 +67,12 @@ export default class ThemeExample extends Component {
     let re = [];
     let id = 0;
     if(this.state.income.localeCompare("Income") === 0){
-      this.props.changeTemp("category", this.props.category.Income[0] );
       for(let a of this.props.category.Income){
         re.push(
           <Picker.Item key={id++} label={a} value={a} />
         );
       }
     }else{
-      this.props.changeTemp("category", this.props.category.Expense[0] );
       for(let a of this.props.category.Expense){
         re.push(
           <Picker.Item key={id++} label={a} value={a} />
@@ -124,7 +123,8 @@ export default class ThemeExample extends Component {
                           selectedValue={this.state.second}
                           onValueChange={(value) => {
                             this.props.changeTemp("category", value );
-                            this.setState({second: value})
+                            this.setState({second: value});
+                            console.log(value);
                           }}
                         >
                           {this.getSecondarySelection()}
