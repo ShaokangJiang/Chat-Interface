@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container, Content, Text, StyleProvider, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right } from 'native-base';
+import { Container, Content, Text, StyleProvider, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right, Item } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -15,8 +15,6 @@ export default class ThemeExample extends Component {
       active: false,
       date: new Date()
     }
-    this.storeData = this.storeData.bind(this);
-    this.getData = this.getData.bind(this);
     this.setDate = this.setDate.bind(this);
     this.setMode = this.setMode.bind(this);
     this.setshow = this.setShow.bind(this);
@@ -54,18 +52,16 @@ export default class ThemeExample extends Component {
     this.showMode('time');
   };
 
-  async handleAddItem(obj) {
-
-  }
-
-  async handleEditItem(obj) {
-
-  }
-
   render() {
     return (
       <StyleProvider style={getTheme(material)}>
         <Container>
+
+          <Item>
+            <ListItem>
+              
+            </ListItem>
+          </Item>
           <Content>
 
             

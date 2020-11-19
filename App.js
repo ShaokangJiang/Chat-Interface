@@ -89,7 +89,7 @@ class MainScreen extends Component {
           "Amount": 0,
           "Income": false,
           "Category": "Emergent",
-          "Title": "Initial Expense",
+          "Title": "Initial Expense Emergent",
           "Description": "Here is your initial Expense, it is just a sample"
         }
       ];
@@ -184,7 +184,7 @@ class MainScreen extends Component {
           }
         </Stack.Screen>
         <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} /> }}>
-          {(props) => <Add {...props} />}
+          {(props) => <Add {...props} data={this.state.data} category={this.state.category} handleAddItem={this.handleAddItem} />}
         </Stack.Screen>
       </Stack.Navigator>
 
