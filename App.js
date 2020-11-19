@@ -14,6 +14,9 @@ import {
   NavigationContainer
 } from '@react-navigation/native';
 
+var tempObj = {};
+var idRange = 0;
+
 class MainScreen extends Component {
 
   constructor(props) {
@@ -29,8 +32,16 @@ class MainScreen extends Component {
     this.handleEditItem = this.handleEditItem.bind(this)
     this.getOtherTabs = this.getOtherTabs.bind(this);
     this.handleModifyCategory = this.handleModifyCategory.bind(this);
+    this.changeTemp = this.changeTemp.bind(this);
   }
 
+  changeTemp(key, value){
+    tempObj[key] = value;
+  }
+
+  cleanTemp(){
+    tempObj = {};
+  }
 
   async storeData(key, value) {
     try {
@@ -72,6 +83,7 @@ class MainScreen extends Component {
       let data = {};
       data[time] = [
         {
+          "id":1,
           "Amount": 0,
           "Income": true,
           "Category": "Salary",
@@ -79,6 +91,7 @@ class MainScreen extends Component {
           "Description": "Here is your initial salary, it is just a sample"
         },
         {
+          "id":2,
           "Amount": 0,
           "Income": false,
           "Category": "Normal",
@@ -86,6 +99,7 @@ class MainScreen extends Component {
           "Description": "Here is your initial Expense, it is just a sample"
         },
         {
+          "id":3,
           "Amount": 0,
           "Income": false,
           "Category": "Emergent",
@@ -98,11 +112,17 @@ class MainScreen extends Component {
       this.setState({
         data: data
       });
-      await this.storeData("data", data.stringify);
+      await this.storeData("data", data);
     } else {
       this.setState({
         data: dat
       });
+    }
+
+    for(let i of Object.keys(this.state.data)){
+      for(let k of this.state.data[i]){
+        if(k.id > idRange) idRange = k.id;
+      }
     }
   }
 
@@ -123,8 +143,42 @@ class MainScreen extends Component {
   }
 
 
-  async handleAddItem(obj) {
+  async handleAddItem(navigation) {
+    // console.log(tempObj);
+    // Object {
+    //   "amount": 866,
+    //   "category": "Salary",
+    //   "date": 2020-11-24T03:45:29.198Z,
+    //   "income": "Income",
+    //   "title": "Fjk",
+    // }
 
+    if(Object.keys(tempObj).length<6) {
+      Alert.alert("Please fill all fields");
+      return;
+    }
+    navigation.goBack();
+    let a = tempObj.date.toLocaleDateString();
+
+    let temp = this.state.data;
+    if(temp[a] === undefined){
+      temp[a] = [];
+    }
+    let newElement = {};
+    idRange++;
+    newElement["id"] = idRange;
+    newElement["Amount"] = tempObj.amount;
+    newElement["Income"] = tempObj.income.localeCompare("Income") === 0 ? true : false;
+    newElement["Category"] = tempObj.category;
+    newElement["Title"] = tempObj.title;
+    newElement["Description"] = tempObj.description;
+    temp[a].push(newElement);
+    console.log(temp[a]);
+    this.setState({data: temp});
+    await this.storeData("data", temp);
+
+    this.cleanTemp();
+    //console.log(tempObj);
   }
 
   async handleEditItem(obj) {
@@ -166,7 +220,7 @@ class MainScreen extends Component {
         },
         headerTintColor: '#fff'
       }}>
-        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} /> }}>
+        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} data="normal" functions={""} /> }}>
           {(props) =>
             <StyleProvider style={getTheme(material)}>
               <Container>
@@ -183,8 +237,8 @@ class MainScreen extends Component {
             </StyleProvider>
           }
         </Stack.Screen>
-        <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} /> }}>
-          {(props) => <Add {...props} data={this.state.data} category={this.state.category} handleAddItem={this.handleAddItem} />}
+        <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleAddItem}/> }}>
+          {(props) => <Add {...props} data={this.state.data} changeTemp={this.changeTemp} category={this.state.category}  />}
         </Stack.Screen>
       </Stack.Navigator>
 
@@ -193,7 +247,7 @@ class MainScreen extends Component {
 
 }
 
-const CustomHeader = ({ scene, previous, navigation }) => {
+const CustomHeader = ({ scene, previous, navigation, data , functions}) => {
   const { options } = scene.descriptor;
   const title =
     options.headerTitle !== undefined
@@ -201,6 +255,23 @@ const CustomHeader = ({ scene, previous, navigation }) => {
       : options.title !== undefined
         ? options.title
         : scene.route.name;
+
+        let rightSide = null;
+  if(data.localeCompare("Add") === 0){
+
+    return (
+      <Header>
+        {previous ? (
+          <Left><Button transparent onPress={navigation.goBack}>
+            <Icon name="arrow-back" />
+          </Button></Left>
+        ) : <View style={{ paddingLeft: 10 }}></View>}
+  
+        <Body><Title>{title}</Title></Body>
+        <Right><Button transparent iconLeft onPress={() => {functions(navigation);}}><Icon type="MaterialIcons" name='save' /><Text>{"Save"}</Text></Button></Right>
+      </Header>
+    );
+  }
 
   return (
     <Header>

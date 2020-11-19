@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container, Content, Text, StyleProvider, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right, Item } from 'native-base';
+import { Container,Form,Textarea,Picker, Content,Label,Input, Text, StyleProvider, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right, Item } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -13,12 +13,21 @@ export default class ThemeExample extends Component {
     super(props);
     this.state = {
       active: false,
-      date: new Date()
+      date: new Date(),
+      income : "Income",
+      amount: 0,
+      second: this.props.category.Income[0]
     }
     this.setDate = this.setDate.bind(this);
     this.setMode = this.setMode.bind(this);
     this.setshow = this.setShow.bind(this);
     this.onChange = this.onChange.bind(this);
+  }
+
+  componentDidMount(){
+    this.props.changeTemp('date', this.state.date);
+    this.props.changeTemp("income", "Income" );
+    this.props.changeTemp("description", "   " );
   }
 
   setDate(dat) {
@@ -37,6 +46,7 @@ export default class ThemeExample extends Component {
     const currentDate = selectedDate || this.state.date;
     this.setShow(Platform.OS === 'ios');
     this.setDate(currentDate);
+    this.props.changeTemp('date', currentDate);
   }
 
   showMode = (currentMode) => {
@@ -52,29 +62,90 @@ export default class ThemeExample extends Component {
     this.showMode('time');
   };
 
+  getSecondarySelection(){
+    let re = [];
+    let id = 0;
+    if(this.state.income.localeCompare("Income") === 0){
+      this.props.changeTemp("category", this.props.category.Income[0] );
+      for(let a of this.props.category.Income){
+        re.push(
+          <Picker.Item key={id++} label={a} value={a} />
+        );
+      }
+    }else{
+      this.props.changeTemp("category", this.props.category.Expense[0] );
+      for(let a of this.props.category.Expense){
+        re.push(
+          <Picker.Item key={id++} label={a} value={a} />
+        );
+      }
+
+    }
+    return re;
+  }
+
   render() {
     return (
       <StyleProvider style={getTheme(material)}>
         <Container>
-
           <Item>
-            <ListItem>
-              
-            </ListItem>
-          </Item>
+                    <Input placeholder="Title" onChange={(event) => this.props.changeTemp("title",event.nativeEvent.text)} />
+                  </Item>
+<View style={{marginLeft: 5, marginRight: 5, marginBottom: 10}}>
+
+          <Item style={{ borderColor: 'transparent', marginBottom: '3%' }}>
+                    <Text>{"Category:"}</Text>
+                    <Body>
+                      <Item picker >
+                        <Picker
+                          mode="dropdown"
+                          iosIcon={<Icon name="arrow-down" />}
+                          placeholder="Pick Category"
+                          placeholderStyle={{ color: "#bfc6ea" }}
+                          placeholderIconColor="#007aff"
+                          selectedValue={this.state.income}
+                          onValueChange={(value) => {
+                            this.props.changeTemp("income", value)
+                            this.setState({income: value})
+                          }}
+                        >
+                          <Picker.Item label="Income" value="Income" />
+                          <Picker.Item label="Expense" value="Expense" />
+                        </Picker>
+                      </Item></Body>
+                      <Right>
+                      <Item picker >
+                        <Picker
+                          mode="dropdown"
+                          iosIcon={<Icon name="arrow-down" />}
+                          placeholder="Pick Category"
+                          placeholderStyle={{ color: "#bfc6ea" }}
+                          placeholderIconColor="#007aff"
+                          selectedValue={this.state.second}
+                          onValueChange={(value) => {
+                            this.props.changeTemp("category", value );
+                            this.setState({second: value})
+                          }}
+                        >
+                          {this.getSecondarySelection()}
+                        </Picker>
+                      </Item></Right>
+                  </Item>
+
+            <Item >
+        <Input placeholder="Amount" keyboardType="numeric" onChange={(event) => this.props.changeTemp("amount", parseFloat(event.nativeEvent.text))} />
+                 <Button primary bordered iconLeft onPress={this.showDatepicker}><Icon type="MaterialIcons" name='schedule' /><Text>{this.state.date.toDateString()}</Text></Button>
+            </Item>            
+            </View>
+
           <Content>
 
-            
-            <Text>
-              I have changed the text color.
-            </Text>
-            <Button light><Text> Light </Text></Button>
-            <Button primary><Text> Primary </Text></Button>
-            <Button success><Text> Success </Text></Button>
-
-            <Button primary onPress={this.showDatepicker}><Text>Show date picker!</Text></Button>
-
-            {this.state.show && (
+          <Textarea rowSpan={20}
+           onChange={(event) => {
+            this.props.changeTemp("description", event.nativeEvent.text );
+             }} placeholder="Textarea" />
+          </Content>
+          {this.state.show && (
               <DateTimePicker
                 testID="dateTimePicker"
                 value={this.state.date}
@@ -84,9 +155,6 @@ export default class ThemeExample extends Component {
                 onChange={this.onChange}
                 style={{ width: "90%" }}
               />)}
-            <Text>{this.state.date.toDateString()}</Text>
-            
-          </Content>
         </Container>
       </StyleProvider>
     );
