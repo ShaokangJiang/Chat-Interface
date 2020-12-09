@@ -105,6 +105,7 @@ export default class ThemeExample extends Component {
                           selectedValue={this.state.income}
                           onValueChange={(value) => {
                             this.props.changeTemp("income", value)
+                            this.props.changeTemp("category", value.localeCompare("Income") === 0 ? this.props.category.Income[0] : this.props.category.Expense[0] );
                             this.setState({income: value})
                           }}
                         >
@@ -124,7 +125,7 @@ export default class ThemeExample extends Component {
                           onValueChange={(value) => {
                             this.props.changeTemp("category", value );
                             this.setState({second: value});
-                            console.log(value);
+                            //console.log(value);
                           }}
                         >
                           {this.getSecondarySelection()}
