@@ -2,7 +2,7 @@
   "expo": {
     "name": "CapitalTwo-Financial",
     "slug": "CapitalTwo-Financial",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -17,9 +17,13 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.capitaltwo.financial",
+      "buildNumber": "0.0.1"
     },
     "android": {
+      "package": "com.capitaltwo.financial",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"

@@ -13,6 +13,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import {
   NavigationContainer
 } from '@react-navigation/native';
+import Website from './Website'
 
 var tempObj = {};
 var idRange = 0;
@@ -149,14 +150,6 @@ class MainScreen extends Component {
 
 
   async handleAddItem(navigation) {
-    //console.log(tempObj);
-    // Object {
-    //   "amount": 866,
-    //   "category": "Salary",
-    //   "date": 2020-11-24T03:45:29.198Z,
-    //   "income": "Income",
-    //   "title": "Fjk",
-    // }
 
     if(Object.keys(tempObj).length<6) {
       Alert.alert("Please fill all fields");
@@ -245,6 +238,9 @@ class MainScreen extends Component {
         <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleAddItem}/> }}>
           {(props) => <Add {...props} data={this.state.data} changeTemp={this.changeTemp} category={this.state.category}  />}
         </Stack.Screen>
+        <Stack.Screen name="Website" options={{ header: (props) => <CustomHeader {...props} data="website" />, title: "Yearly Budgeting Tool" }}>
+          {(props) => <Website {...props} data={this.state.data} />}
+        </Stack.Screen>
       </Stack.Navigator>
 
     );
@@ -274,6 +270,22 @@ const CustomHeader = ({ scene, previous, navigation, data , functions}) => {
   
         <Body><Title>{title}</Title></Body>
         <Right><Button transparent iconLeft onPress={() => {functions(navigation);}}><Icon type="MaterialIcons" name='save' /><Text>{"Save"}</Text></Button></Right>
+      </Header>
+    );
+  }
+
+  if(data.localeCompare("normal") === 0){
+
+    return (
+      <Header>
+        {previous ? (
+          <Left><Button transparent onPress={navigation.goBack}>
+            <Icon name="arrow-back" />
+          </Button></Left>
+        ) : <View style={{ paddingLeft: 10 }}></View>}
+  
+        <Body><Title>{title}</Title></Body>
+        <Right><Button transparent iconLeft onPress={() => {navigation.navigate("Website")}}><Icon type="MaterialIcons" name='cloud-upload' /></Button></Right>
       </Header>
     );
   }
