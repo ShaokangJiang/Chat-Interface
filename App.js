@@ -20,7 +20,6 @@ var tempObj = {};
 var idRange = 0;
 var idTemp = 0;
 var origDate = "";
-var deletion = [];
 
 class MainScreen extends Component {
 
@@ -30,7 +29,8 @@ class MainScreen extends Component {
       data: {},
       category: {},
       loading: true,
-      delete: false
+      delete: false,
+      deletion: []
     }
     this.storeData = this.storeData.bind(this);
     this.getData = this.getData.bind(this);
@@ -59,9 +59,8 @@ class MainScreen extends Component {
   }
 
   setDeletion(value) {
-    deletion = value;
-    if (value.length !== 0) this.setState({ delete: true })
-    else this.setState({ delete: false })
+    if (value.length !== 0) this.setState({ delete: true, deletion: value })
+    else this.setState({ delete: false, deletion: value  })
   }
 
   componentWillUnmount() {
@@ -72,7 +71,6 @@ class MainScreen extends Component {
     tempObj = {};
     idTemp = 0;
     origDate = "";
-    deletion = [];
   }
 
   async storeData(key, value) {
@@ -258,23 +256,22 @@ class MainScreen extends Component {
 
   async handleDeletion() {
     let temp = this.state.data;
-    for (let i of deletion) {
+    for (let i of this.state.deletion) {
       temp = this.singleDelete(temp, i)
     }
-    this.setState({ data: temp, delete: false })
-    await this.storeData("data", temp);
     this.cleanTemp()
+    this.setState({ data: temp, delete: false, deletion: [] })
+    await this.storeData("data", temp);
+    console.log(temp)
   }
 
   singleDelete(temp, id) {
-    let m = false;
     for (let k of Object.keys(temp)) {
       let obj = [];
       for (let i of temp[k]) {
-        if (i.id !== id) { obj.push(i) } else { m = true; break; }
+        if (i.id !== id) { obj.push(i) }
       }
       temp[k] = obj;
-      if (m) break;
     }
     return temp;
   }
@@ -285,7 +282,7 @@ class MainScreen extends Component {
       //console.log(i);
       tabs.push(
         <Tab heading={i} key={i} tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-          <MainTab {...props} category={i} data={this.state.data} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
+          <MainTab {...props} category={i} delete={this.state.delete} deletion={this.state.deletion} data={this.state.data}  setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
         </Tab>
       );
     }
@@ -293,7 +290,7 @@ class MainScreen extends Component {
       //console.log(i);
       tabs.push(
         <Tab heading={i} key={i} tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-          <MainTab {...props} category={i} data={this.state.data} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
+          <MainTab {...props} category={i} data={this.state.data} delete={this.state.delete} deletion={this.state.deletion}  setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
         </Tab>
       );
     }
@@ -314,7 +311,7 @@ class MainScreen extends Component {
         },
         headerTintColor: '#fff'
       }}>
-        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} data="normal" functions={this.handleDeletion} cleanTemp={this.cleanTemp} /> }}>
+        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} data="normal" functions={this.handleDeletion} cleanTemp={this.cleanTemp} deletion={this.state.deletion}/> }}>
           {(props) =>
             <StyleProvider style={getTheme(material)}>
               <Container>
@@ -323,7 +320,7 @@ class MainScreen extends Component {
                     <Ordering {...props} category={this.state.category} handleModifyCategory={this.handleModifyCategory} />
                   </Tab>
                   <Tab heading="Home" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <Home {...props} data={this.state.data} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
+                    <Home {...props} data={this.state.data} delete={this.state.delete} deletion={this.state.deletion}  setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
                   </Tab>
                   {this.getOtherTabs(props)}
                 </Tabs>
@@ -347,7 +344,7 @@ class MainScreen extends Component {
 
 }
 
-const CustomHeader = ({ scene, previous, navigation, data, functions, cleanTemp }) => {
+const CustomHeader = ({ scene, previous, navigation, data, functions, cleanTemp, deletion }) => {
   const { options } = scene.descriptor;
   const title =
     options.headerTitle !== undefined

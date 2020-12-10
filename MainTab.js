@@ -6,16 +6,13 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { Alert, Dimensions } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-var initialize = false;
 export default class MainScreen extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             active: false,
-            date: new Date(),
-            delete: false,
-            deletion: []
+            date: new Date()
         }
     }
 
@@ -56,21 +53,18 @@ export default class MainScreen extends Component {
     }
 
     deletion(id) {
-        initialize = false;
-        if (this.state.deletion.indexOf(id) === -1) {
-            let tmp = this.state.deletion;
+        if (this.props.deletion.indexOf(id) === -1) {
+            let tmp = this.props.deletion;
             tmp.push(id);
-            this.setState({ deletion: tmp, delete: true });
             this.props.setDeletion(tmp);
         } else {
-            let tmp = this.state.deletion;
+            let tmp = this.props.deletion;
             tmp.splice(tmp.indexOf(id), 1);
             if (tmp.length > 0){
-                this.setState({ deletion: tmp });
                 this.props.setDeletion(tmp);
             }
             else {
-                this.setState({ deletion: tmp, delete: false })
+                this.props.setDeletion(tmp);
             }
         }
         //console.log(this.state.deletion);
@@ -95,37 +89,36 @@ export default class MainScreen extends Component {
             }
             for (let k of Object.values(this.props.data[i])) {
                 if (this.props.category.localeCompare(k.Category) === 0)
-                    re.push(
-                        <ListItem noIndent thumbnail key={id++} button onPress={() => {
-                            if (this.state.delete) {
-                                this.deletion(k.id)
-                            } else {
-                                this.props.changeIDtemp(k.id);
-                                this.props.changeTemp("title", k.Title); 
-                                this.props.changeTemp("income", k.Income ? "Income" : "Expense");
-                                this.props.changeTemp("category", k.Category);
-                                this.props.changeTemp('date', i);
-                                this.props.changeTemp("amount", k.Amount)
-                                this.props.changeTemp("description", k.Description);
-                                this.props.navigation.navigate("Edit")
-                            }
-                        }} onLongPress={() => {
-                            if (!this.state.delete) {
-                                initialize = true;
-                                this.setState({ delete: true });
-                                this.deletion(k.id);
-                            }
-                        }}>
-                            {this.state.delete ? (
-                                <Left style={{ marginLeft: -17, marginRight: 10 }}><CheckBox checked={initialize ? true : this.state.deletion.indexOf(k.id) !== -1} onPress={() => { this.deletion(k.id) }} /></Left>
-                            ) : <Left style={{ marginLeft: -20 }}></Left>}
-                            <Body >
-                                <Text>{this.truncate(k.Title) + "  "}<Text style={k.Income ? { color: 'red' } : { color: 'green' }}>{(k.Income ? "+" : "-") + k.Amount}</Text></Text>
-                                <Text note>{this.truncateContent(k.Description)}</Text>
-                            </Body>
-                            <Right><Icon name="arrow-forward" /></Right>
-                        </ListItem>
-                    );
+                re.push(
+                    <ListItem noIndent thumbnail key={id++} button onPress={() => {
+                        if (this.props.delete) {
+                            this.deletion(k.id)
+                        } else {
+                            this.props.changeIDtemp(k.id);
+                            this.props.changeTemp("title", k.Title);
+                            this.props.changeTemp("income", k.Income ? "Income" : "Expense");
+                            this.props.changeTemp("category", k.Category);
+                            this.props.changeTemp('date', i);
+                            this.props.changeTemp("amount", k.Amount)
+                            this.props.changeTemp("description", k.Description);
+                            this.props.navigation.navigate("Edit")
+                        }
+                    }} onLongPress={() => {
+                        if (!this.props.delete) {
+                            initialize = true;
+                            this.deletion(k.id);
+                        }
+                    }}>
+                        {this.props.delete ? (
+                            <Left style={{ marginLeft: -17, marginRight: 10 }}><CheckBox checked={this.props.deletion.indexOf(k.id) !== -1} onPress={() => { this.deletion(k.id) }} /></Left>
+                        ) : <Left style={{ marginLeft: -20 }}></Left>}
+                        <Body >
+                            <Text>{this.truncate(k.Title) + "  "}<Text style={k.Income ? { color: 'red' } : { color: 'green' }}>{(k.Income ? "+" : "-") + k.Amount}</Text></Text>
+                            <Text note>{this.truncateContent(k.Description)}</Text>
+                        </Body>
+                        <Right><Icon name="arrow-forward" /></Right>
+                    </ListItem>
+                );
             }
         }
         return re;
