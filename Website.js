@@ -15,6 +15,7 @@ export default class ThemeExample extends Component {
         const runFirst = `
           window.isNativeApp = true; 
           localStorage.setItem("budgetingData", '`+JSON.stringify(this.props.data)+`');
+          localStorage.setItem("budgetingCategory", '`+JSON.stringify(this.props.category)+`')
           true; // note: this is required, or you'll sometimes get silent failures
         `;
         console.log(runFirst);

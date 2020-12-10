@@ -332,7 +332,7 @@ class MainScreen extends Component {
           {(props) => <Add {...props} data={this.state.data} changeTemp={this.changeTemp} category={this.state.category} />}
         </Stack.Screen>
         <Stack.Screen name="Website" options={{ header: (props) => <CustomHeader {...props} data="website" />, title: "Yearly Budgeting Tool" }}>
-          {(props) => <Website {...props} data={this.state.data} />}
+          {(props) => <Website {...props} data={this.state.data} category={this.state.category}/>}
         </Stack.Screen>
         <Stack.Screen name="Edit" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleEditItem} cleanTemp={this.cleanTemp} /> }}>
           {(props) => <Edit {...props} data={tempObj} changeTemp={this.changeTemp} category={this.state.category} />}
