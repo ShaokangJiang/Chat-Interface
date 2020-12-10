@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Container, Content, Text, StyleProvider, Left, Title, CheckBox, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right } from 'native-base';
+import { Container, Content, Text, StyleProvider, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right } from 'native-base';
+import { CheckBox } from 'react-native-elements'
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -109,7 +110,7 @@ export default class MainScreen extends Component {
                         }
                     }}>
                         {this.props.delete ? (
-                            <Left style={{ marginLeft: -17, marginRight: 10 }}><CheckBox checked={this.props.deletion.indexOf(k.id) !== -1} onPress={() => { this.deletion(k.id) }} /></Left>
+                            <Left style={{ marginLeft: -20, marginRight: -20 }}><CheckBox checked={this.props.deletion.indexOf(k.id) !== -1} onPress={() => { this.deletion(k.id) }} /></Left>
                         ) : <Left style={{ marginLeft: -20 }}></Left>}
                         <Body >
                             <Text>{this.truncate(k.Title) + "  "}<Text style={k.Income ? { color: 'red' } : { color: 'green' }}>{(k.Income ? "+" : "-") + k.Amount}</Text></Text>
