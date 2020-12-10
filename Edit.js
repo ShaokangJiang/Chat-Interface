@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Container, Form, Textarea, Picker, Content, Label, Input, Text, StyleProvider, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right, Item } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
+import { AppearanceProvider } from 'react-native-appearance';
 import AsyncStorage from '@react-native-community/async-storage';
 import { Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -91,7 +92,6 @@ export default class ThemeExample extends Component {
 
   render() {
     return (
-      <StyleProvider style={getTheme(material)}>
         <Container>
           <Item>
             <Input defaultValue={"" + this.props.data.title} onChange={(event) => this.props.changeTemp("title", event.nativeEvent.text)} />
@@ -100,14 +100,18 @@ export default class ThemeExample extends Component {
 
             <Item style={{ borderColor: 'transparent', marginBottom: '3%' }}>
               <Text>{"Category:"}</Text>
-              <Body>
+              <Body style={{backgroundColor: 'white'}}>
                 <Item picker >
                   <Picker
                     mode="dropdown"
                     iosIcon={<Icon name="arrow-down" />}
-                    placeholder="Pick Category"
-                    placeholderStyle={{ color: "#bfc6ea" }}
-                    placeholderIconColor="#007aff"
+                    textStyle={{ color: "#5cb85c" }}
+                    itemStyle={{
+                      backgroundColor: "#d3d3d3",
+                      marginLeft: 0,
+                      paddingLeft: 10
+                    }}
+                    itemTextStyle={{ color: '#788ad2' }}
                     selectedValue={this.state.income}
                     onValueChange={(value) => {
                       this.props.changeTemp("income", value)
@@ -119,14 +123,18 @@ export default class ThemeExample extends Component {
                     <Picker.Item label="Expense" value="Expense" />
                   </Picker>
                 </Item></Body>
-              <Right>
+              <Right style={{backgroundColor: 'white'}}>
                 <Item picker >
                   <Picker
                     mode="dropdown"
                     iosIcon={<Icon name="arrow-down" />}
-                    placeholder="Pick Category"
-                    placeholderStyle={{ color: "#bfc6ea" }}
-                    placeholderIconColor="#007aff"
+                    textStyle={{ color: "#5cb85c" }}
+                    itemStyle={{
+                      backgroundColor: "#d3d3d3",
+                      marginLeft: 0,
+                      paddingLeft: 10
+                    }}
+                    itemTextStyle={{ color: '#788ad2' }}
                     selectedValue={this.state.second}
                     onValueChange={(value) => {
                       this.props.changeTemp("category", value);
@@ -163,7 +171,6 @@ export default class ThemeExample extends Component {
               style={{ width: "90%" }}
             />)}
         </Container>
-      </StyleProvider>
     );
   }
 }

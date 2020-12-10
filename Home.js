@@ -3,6 +3,7 @@ import { Container, Content, Text, StyleProvider, Left, Title, Button, Header, L
 import { CheckBox } from 'react-native-elements'
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
+import materialDark from './native-base-theme/variables/material-dark';
 import AsyncStorage from '@react-native-community/async-storage';
 import { Alert, Dimensions } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -137,7 +138,6 @@ export default class MainScreen extends Component {
     render() {
         return (
 
-            <StyleProvider style={getTheme(material)}>
                 <Container>
                     <Content>
                         <List>
@@ -164,7 +164,6 @@ export default class MainScreen extends Component {
                         </Button>
                     </Fab>
                 </Container>
-            </StyleProvider>
 
         );
     }

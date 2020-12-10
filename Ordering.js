@@ -4,6 +4,7 @@ import DraggableFlatList from './index'
 import { Form, Item, Label, Input, Container, Picker, Content, Text, StyleProvider, Left, Title, CheckBox, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
+import { AppearanceProvider } from 'react-native-appearance';
 import { Overlay } from 'react-native-elements';
 import Modal from 'react-native-modal';
 class Example extends Component {
@@ -149,18 +150,18 @@ class Order extends Component {
   render() {
     //console.log(this.state.data);
     return (
-      <StyleProvider style={getTheme(material)}>
         <Container>
 
           <List>
 
-            <Separator bordered>
-              <Text>Income</Text>
-            </Separator>
+            <ListItem itemDivider key={1}>
+            <Text>Income</Text>
+                    </ListItem>
             {this.getIncome()}
-            <Separator bordered>
-              <Text>Expense</Text>
-            </Separator>
+            
+            <ListItem itemDivider key={2}>
+            <Text>Expense</Text>
+                    </ListItem>
           </List>
 
           <DraggableFlatList
@@ -232,7 +233,6 @@ class Order extends Component {
             </Modal>
           </View>
         </Container>
-      </StyleProvider>
     );
   }
 }

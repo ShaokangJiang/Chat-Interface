@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Container, Content, Text, StyleProvider, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right } from 'native-base';
 import { CheckBox } from 'react-native-elements'
 import getTheme from './native-base-theme/components';
+import { AppearanceProvider } from 'react-native-appearance';
 import material from './native-base-theme/variables/material';
 import AsyncStorage from '@react-native-community/async-storage';
 import { Alert, Dimensions } from 'react-native';
@@ -138,7 +139,6 @@ export default class MainScreen extends Component {
     render() {
         return (
 
-            <StyleProvider style={getTheme(material)}>
                 <Container>
                     <Content>
                         <List>
@@ -165,7 +165,6 @@ export default class MainScreen extends Component {
                         </Button>
                     </Fab>
                 </Container>
-            </StyleProvider>
 
         );
     }

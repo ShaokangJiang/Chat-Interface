@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import { Container, Content, Text, StyleProvider, H1, H2, Left, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right, Tab, Tabs, ScrollableTab } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
+import materialDark from './native-base-theme/variables/material-dark';
+import { AppearanceProvider, Appearance, useColorScheme } from 'react-native-appearance';
+
 import AsyncStorage from '@react-native-community/async-storage';
 import { Alert } from 'react-native';
 import * as Font from 'expo-font';
@@ -30,7 +33,8 @@ class MainScreen extends Component {
       category: {},
       loading: true,
       delete: false,
-      deletion: []
+      deletion: [],
+      theme: "dark"
     }
     this.storeData = this.storeData.bind(this);
     this.getData = this.getData.bind(this);
@@ -43,7 +47,12 @@ class MainScreen extends Component {
     this.cleanTemp = this.cleanTemp.bind(this)
     this.setDeletion = this.setDeletion.bind(this)
     this.handleDeletion = this.handleDeletion.bind(this)
+    this.subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      //console.log(colorScheme);
+      this.setState({ theme: colorScheme  })
+    });
   }
+
 
   changeTemp(key, value) {
     tempObj[key] = value;
@@ -60,7 +69,7 @@ class MainScreen extends Component {
 
   setDeletion(value) {
     if (value.length !== 0) this.setState({ delete: true, deletion: value })
-    else this.setState({ delete: false, deletion: value  })
+    else this.setState({ delete: false, deletion: value })
   }
 
   componentWillUnmount() {
@@ -89,8 +98,8 @@ class MainScreen extends Component {
   }
 
   async initialize() {
-    await AsyncStorage.removeItem("category");
-    await AsyncStorage.removeItem("data");
+    //await AsyncStorage.removeItem("category");
+    //await AsyncStorage.removeItem("data");
     let cat = await this.getData("category");
     if (cat === null) {//no item, do initialize
       let categories = {
@@ -169,7 +178,10 @@ class MainScreen extends Component {
       'Roboto_medium': require('native-base/Fonts/Roboto_medium.ttf'),
     })
     await this.initialize();
+    this.setState({ theme: Appearance.getColorScheme() });
+    
     this.setState({ loading: false })
+
   }
 
 
@@ -281,16 +293,16 @@ class MainScreen extends Component {
     for (let i of Object.values(this.state.category.Income)) {
       //console.log(i);
       tabs.push(
-        <Tab heading={i} key={i} tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-          <MainTab {...props} category={i} delete={this.state.delete} deletion={this.state.deletion} data={this.state.data}  setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
+        <Tab heading={i} key={i} tabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }} activeTabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }}>
+          <MainTab {...props} category={i} delete={this.state.delete} deletion={this.state.deletion} data={this.state.data} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
         </Tab>
       );
     }
     for (let i of Object.values(this.state.category.Expense)) {
       //console.log(i);
       tabs.push(
-        <Tab heading={i} key={i} tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-          <MainTab {...props} category={i} data={this.state.data} delete={this.state.delete} deletion={this.state.deletion}  setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
+        <Tab heading={i} key={i} tabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }} activeTabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }}>
+          <MainTab {...props} category={i} data={this.state.data} delete={this.state.delete} deletion={this.state.deletion} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
         </Tab>
       );
     }
@@ -298,47 +310,59 @@ class MainScreen extends Component {
   }
 
   render() {
+    //console.log("aaa")
     if (this.state.loading) {
       return (
         <View></View>
       );
     }
     return (
+      <StyleProvider style={getTheme(this.state.theme === 'dark' ? materialDark : material)}>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Organize" screenOptions={{
+            headerStyle: {
+              backgroundColor: '#2b82c9',
+            },
+            headerTintColor: '#fff'
+          }}>
+            <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} data="normal" functions={this.handleDeletion} cleanTemp={this.cleanTemp} deletion={this.state.deletion} /> }}>
+              {(props) =>
+                <StyleProvider style={getTheme(this.state.theme === 'dark' ? materialDark : material)}>
+                  <Container>
+                    <Tabs renderTabBar={() => <ScrollableTab style={{ height: '6%' }} />} initialPage={1} >
+                      <Tab heading="Order" tabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }} activeTabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }}>
+                        <Ordering {...props} category={this.state.category} handleModifyCategory={this.handleModifyCategory} />
+                      </Tab>
+                      <Tab heading="Home" tabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }} activeTabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }}>
+                        <Home {...props} data={this.state.data} delete={this.state.delete} deletion={this.state.deletion} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
+                      </Tab>
+                      {this.getOtherTabs(props)}
+                    </Tabs>
+                  </Container>
+                </StyleProvider>
+              }
+            </Stack.Screen>
+            <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleAddItem} cleanTemp={this.cleanTemp} /> }}>
+              {(props) =>
+                <StyleProvider style={getTheme(this.state.theme === 'dark' ? materialDark : material)}>
 
-      <Stack.Navigator initialRouteName="Organize" screenOptions={{
-        headerStyle: {
-          backgroundColor: '#2b82c9',
-        },
-        headerTintColor: '#fff'
-      }}>
-        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} data="normal" functions={this.handleDeletion} cleanTemp={this.cleanTemp} deletion={this.state.deletion}/> }}>
-          {(props) =>
-            <StyleProvider style={getTheme(material)}>
-              <Container>
-                <Tabs renderTabBar={() => <ScrollableTab style={{ height: '6%' }} />} initialPage={1} >
-                  <Tab heading="Order" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <Ordering {...props} category={this.state.category} handleModifyCategory={this.handleModifyCategory} />
-                  </Tab>
-                  <Tab heading="Home" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <Home {...props} data={this.state.data} delete={this.state.delete} deletion={this.state.deletion}  setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
-                  </Tab>
-                  {this.getOtherTabs(props)}
-                </Tabs>
-              </Container>
-            </StyleProvider>
-          }
-        </Stack.Screen>
-        <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleAddItem} cleanTemp={this.cleanTemp} /> }}>
-          {(props) => <Add {...props} data={this.state.data} changeTemp={this.changeTemp} category={this.state.category} />}
-        </Stack.Screen>
-        <Stack.Screen name="Website" options={{ header: (props) => <CustomHeader {...props} data="website" />, title: "Yearly Budgeting Tool" }}>
-          {(props) => <Website {...props} data={this.state.data} category={this.state.category}/>}
-        </Stack.Screen>
-        <Stack.Screen name="Edit" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleEditItem} cleanTemp={this.cleanTemp} /> }}>
-          {(props) => <Edit {...props} data={tempObj} changeTemp={this.changeTemp} category={this.state.category} />}
-        </Stack.Screen>
-      </Stack.Navigator>
+                  <Add {...props} data={this.state.data} changeTemp={this.changeTemp} category={this.state.category} />
+                </StyleProvider>}
+            </Stack.Screen>
+            <Stack.Screen name="Website" options={{ header: (props) => <CustomHeader {...props} data="website" />, title: "Yearly Budgeting Tool" }}>
+              {(props) => <Website {...props} data={this.state.data} category={this.state.category} />}
+            </Stack.Screen>
+            <Stack.Screen name="Edit" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleEditItem} cleanTemp={this.cleanTemp} /> }}>
+              {(props) =>
+                <StyleProvider style={getTheme(this.state.theme === 'dark' ? materialDark : material)}>
 
+                  <Edit {...props} data={tempObj} changeTemp={this.changeTemp} category={this.state.category} />
+                </StyleProvider>}
+            </Stack.Screen>
+          </Stack.Navigator>
+
+        </NavigationContainer>
+      </StyleProvider>
     );
   }
 
@@ -413,11 +437,9 @@ const CustomHeader = ({ scene, previous, navigation, data, functions, cleanTemp,
 const Stack = createStackNavigator();
 
 export default function App() {
-
   return (
-    <NavigationContainer>
+    <AppearanceProvider>
       <MainScreen />
-
-    </NavigationContainer>
+    </AppearanceProvider>
   );
 }
