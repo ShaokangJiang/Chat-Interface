@@ -9,6 +9,7 @@ import MainTab from './MainTab';
 import Ordering from './Ordering';
 import Home from './Home';
 import Add from './Add';
+import Edit from './Edit'
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   NavigationContainer
@@ -17,6 +18,9 @@ import Website from './Website'
 
 var tempObj = {};
 var idRange = 0;
+var idTemp = 0;
+var origDate = "";
+var deletion = [];
 
 class MainScreen extends Component {
 
@@ -25,7 +29,8 @@ class MainScreen extends Component {
     this.state = {
       data: {},
       category: {},
-      loading: true
+      loading: true,
+      delete: false
     }
     this.storeData = this.storeData.bind(this);
     this.getData = this.getData.bind(this);
@@ -34,19 +39,39 @@ class MainScreen extends Component {
     this.getOtherTabs = this.getOtherTabs.bind(this);
     this.handleModifyCategory = this.handleModifyCategory.bind(this);
     this.changeTemp = this.changeTemp.bind(this);
+    this.changeIDtemp = this.changeIDtemp.bind(this);
+    this.cleanTemp = this.cleanTemp.bind(this)
+    this.setDeletion = this.setDeletion.bind(this)
   }
 
-  changeTemp(key, value){
+  changeTemp(key, value) {
     tempObj[key] = value;
     //console.log(tempObj);
+    if(key.localeCompare("date") === 0 && origDate.localeCompare("") === 0){
+      //console.log(typeof value)
+      origDate = new Date(value).toLocaleDateString()
+    }
   }
 
-  componentWillUnmount(){
+  changeIDtemp(value) {
+    idTemp = value;
+  }
+
+  setDeletion(value) {
+    deletion = value;
+    if(value.length !== 0 ) this.setState({delete: true})
+    else this.setState({delete: false})
+  }
+
+  componentWillUnmount() {
     this.cleanTemp();
   }
 
-  cleanTemp(){
+  cleanTemp() {
     tempObj = {};
+    idTemp = 0;
+    origDate = "";
+    deletion = [];
   }
 
   async storeData(key, value) {
@@ -65,8 +90,8 @@ class MainScreen extends Component {
   }
 
   async initialize() {
-    //await AsyncStorage.removeItem("category");
-    //await AsyncStorage.removeItem("data");
+    await AsyncStorage.removeItem("category");
+    await AsyncStorage.removeItem("data");
     let cat = await this.getData("category");
     if (cat === null) {//no item, do initialize
       let categories = {
@@ -89,7 +114,7 @@ class MainScreen extends Component {
       let data = {};
       data[time] = [
         {
-          "id":1,
+          "id": 1,
           "Amount": 0,
           "Income": true,
           "Category": "Salary",
@@ -97,7 +122,7 @@ class MainScreen extends Component {
           "Description": "Here is your initial salary, it is just a sample"
         },
         {
-          "id":2,
+          "id": 2,
           "Amount": 0,
           "Income": false,
           "Category": "Normal",
@@ -105,7 +130,7 @@ class MainScreen extends Component {
           "Description": "Here is your initial Expense, it is just a sample"
         },
         {
-          "id":3,
+          "id": 3,
           "Amount": 0,
           "Income": false,
           "Category": "Emergent",
@@ -125,9 +150,9 @@ class MainScreen extends Component {
       });
     }
 
-    for(let i of Object.keys(this.state.data)){
-      for(let k of this.state.data[i]){
-        if(k.id > idRange) idRange = k.id;
+    for (let i of Object.keys(this.state.data)) {
+      for (let k of this.state.data[i]) {
+        if (k.id > idRange) idRange = k.id;
       }
     }
   }
@@ -151,7 +176,7 @@ class MainScreen extends Component {
 
   async handleAddItem(navigation) {
 
-    if(Object.keys(tempObj).length<6) {
+    if (Object.keys(tempObj).length < 6) {
       Alert.alert("Please fill all fields");
       return;
     }
@@ -159,7 +184,7 @@ class MainScreen extends Component {
     let a = tempObj.date.toLocaleDateString();
 
     let temp = this.state.data;
-    if(temp[a] === undefined){
+    if (temp[a] === undefined) {
       temp[a] = [];
     }
     let newElement = {};
@@ -172,15 +197,66 @@ class MainScreen extends Component {
     newElement["Description"] = tempObj.description;
     temp[a].push(newElement);
     //console.log(temp[a]);
-    this.setState({data: temp});
+    this.setState({ data: temp });
     await this.storeData("data", temp);
 
     this.cleanTemp();
     //console.log(tempObj);
   }
 
-  async handleEditItem(obj) {
+  async handleEditItem(navigation) {
+    //console.log(tempObj)
+    // for()
 
+    if (Object.keys(tempObj).length < 6) {
+      Alert.alert("Please fill all fields");
+      return;
+    }
+    navigation.goBack();
+    let a = tempObj.date.toLocaleDateString();
+
+    let temp = this.state.data;
+    if (temp[a] === undefined) {//in a new date
+      temp[a] = [];
+      let newElement = {};
+      newElement["id"] = idTemp;
+      newElement["Amount"] = tempObj.amount;
+      newElement["Income"] = tempObj.income.localeCompare("Income") === 0 ? true : false;
+      newElement["Category"] = tempObj.category;
+      newElement["Title"] = tempObj.title;
+      newElement["Description"] = tempObj.description;
+      temp[a].push(newElement);
+      //deletion start
+      let obj = [];
+      for(let i of temp[origDate]){
+        if(i.id !== idTemp) obj.push(i)
+      }
+      temp[origDate] = obj;
+      
+    } else {
+      let newElement = {};
+      for (let i of temp[a]) {
+        if (i.id === idTemp) {
+          newElement = i;
+          break;
+        }
+      }
+      newElement["Amount"] = tempObj.amount;
+      newElement["Income"] = tempObj.income.localeCompare("Income") === 0 ? true : false;
+      newElement["Category"] = tempObj.category;
+      newElement["Title"] = tempObj.title;
+      newElement["Description"] = tempObj.description;
+    }
+    console.log(temp);
+    this.setState({ data: temp });
+    await this.storeData("data", temp);
+
+    this.cleanTemp();
+
+  }
+
+  async handleDeletion(){
+    console.log(deletion);
   }
 
   getOtherTabs(props) {
@@ -189,7 +265,7 @@ class MainScreen extends Component {
       //console.log(i);
       tabs.push(
         <Tab heading={i} key={i} tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-          <MainTab {...props} category={i} data={this.state.data} />
+          <MainTab {...props} category={i} data={this.state.data} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
         </Tab>
       );
     }
@@ -197,7 +273,7 @@ class MainScreen extends Component {
       //console.log(i);
       tabs.push(
         <Tab heading={i} key={i} tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-          <MainTab {...props} category={i} data={this.state.data} />
+          <MainTab {...props} category={i} data={this.state.data} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
         </Tab>
       );
     }
@@ -218,16 +294,16 @@ class MainScreen extends Component {
         },
         headerTintColor: '#fff'
       }}>
-        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} data="normal" functions={""} /> }}>
+        <Stack.Screen name="Organize" options={{ header: (props) => <CustomHeader {...props} data="normal" functions={this.handleDeletion} cleanTemp={this.cleanTemp} /> }}>
           {(props) =>
             <StyleProvider style={getTheme(material)}>
               <Container>
                 <Tabs renderTabBar={() => <ScrollableTab style={{ height: '6%' }} />} initialPage={1} >
                   <Tab heading="Order" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <Ordering {...props} category={this.state.category} handleModifyCategory={this.handleModifyCategory}/>
+                    <Ordering {...props} category={this.state.category} handleModifyCategory={this.handleModifyCategory} />
                   </Tab>
                   <Tab heading="Home" tabStyle={{ backgroundColor: "#2b82c9" }} activeTabStyle={{ backgroundColor: "#2b82c9" }}>
-                    <Home {...props} data={this.state.data} />
+                    <Home {...props} data={this.state.data} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
                   </Tab>
                   {this.getOtherTabs(props)}
                 </Tabs>
@@ -235,11 +311,14 @@ class MainScreen extends Component {
             </StyleProvider>
           }
         </Stack.Screen>
-        <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleAddItem}/> }}>
-          {(props) => <Add {...props} data={this.state.data} changeTemp={this.changeTemp} category={this.state.category}  />}
+        <Stack.Screen name="Add" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleAddItem} cleanTemp={this.cleanTemp} /> }}>
+          {(props) => <Add {...props} data={this.state.data} changeTemp={this.changeTemp} category={this.state.category} />}
         </Stack.Screen>
         <Stack.Screen name="Website" options={{ header: (props) => <CustomHeader {...props} data="website" />, title: "Yearly Budgeting Tool" }}>
           {(props) => <Website {...props} data={this.state.data} />}
+        </Stack.Screen>
+        <Stack.Screen name="Edit" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleEditItem} cleanTemp={this.cleanTemp} /> }}>
+          {(props) => <Edit {...props} data={tempObj} changeTemp={this.changeTemp} category={this.state.category} />}
         </Stack.Screen>
       </Stack.Navigator>
 
@@ -248,7 +327,7 @@ class MainScreen extends Component {
 
 }
 
-const CustomHeader = ({ scene, previous, navigation, data , functions}) => {
+const CustomHeader = ({ scene, previous, navigation, data, functions, cleanTemp }) => {
   const { options } = scene.descriptor;
   const title =
     options.headerTitle !== undefined
@@ -257,35 +336,44 @@ const CustomHeader = ({ scene, previous, navigation, data , functions}) => {
         ? options.title
         : scene.route.name;
 
-        let rightSide = null;
-  if(data.localeCompare("Add") === 0){
+  let rightSide = null;
+  if (data.localeCompare("Add") === 0) {
 
     return (
       <Header>
         {previous ? (
-          <Left><Button transparent onPress={navigation.goBack}>
+          <Left><Button transparent onPress={() => {
+            navigation.goBack();
+            cleanTemp();
+          }}>
             <Icon name="arrow-back" />
           </Button></Left>
         ) : <View style={{ paddingLeft: 10 }}></View>}
-  
+
         <Body><Title>{title}</Title></Body>
-        <Right><Button transparent iconLeft onPress={() => {functions(navigation);}}><Icon type="MaterialIcons" name='save' /><Text>{"Save"}</Text></Button></Right>
+        <Right><Button transparent iconLeft onPress={() => { functions(navigation); }}><Icon type="MaterialIcons" name='save' /><Text>{"Save"}</Text></Button></Right>
       </Header>
     );
   }
 
-  if(data.localeCompare("normal") === 0){
+  if (data.localeCompare("normal") === 0) {
 
     return (
       <Header>
         {previous ? (
-          <Left><Button transparent onPress={navigation.goBack}>
+          <Left><Button transparent onPress={() => {
+            navigation.goBack();
+            cleanTemp();
+          }}>
             <Icon name="arrow-back" />
           </Button></Left>
         ) : <View style={{ paddingLeft: 10 }}></View>}
-  
+
         <Body><Title>{title}</Title></Body>
-        <Right><Button transparent iconLeft onPress={() => {navigation.navigate("Website")}}><Icon type="MaterialIcons" name='cloud-upload' /></Button></Right>
+      {deletion.length === 0 ? <Right><Button transparent iconLeft onPress={() => { navigation.navigate("Website") }}><Icon type="MaterialIcons" name='cloud-upload' /></Button></Right>
+      : <Right><Button transparent iconLeft onPress={() => { functions() }}><Icon type="MaterialIcons" name='delete' /></Button></Right>
+    }  
+      
       </Header>
     );
   }
