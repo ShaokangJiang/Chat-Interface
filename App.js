@@ -42,12 +42,13 @@ class MainScreen extends Component {
     this.changeIDtemp = this.changeIDtemp.bind(this);
     this.cleanTemp = this.cleanTemp.bind(this)
     this.setDeletion = this.setDeletion.bind(this)
+    this.handleDeletion = this.handleDeletion.bind(this)
   }
 
   changeTemp(key, value) {
     tempObj[key] = value;
     //console.log(tempObj);
-    if(key.localeCompare("date") === 0 && origDate.localeCompare("") === 0){
+    if (key.localeCompare("date") === 0 && origDate.localeCompare("") === 0) {
       //console.log(typeof value)
       origDate = new Date(value).toLocaleDateString()
     }
@@ -59,8 +60,8 @@ class MainScreen extends Component {
 
   setDeletion(value) {
     deletion = value;
-    if(value.length !== 0 ) this.setState({delete: true})
-    else this.setState({delete: false})
+    if (value.length !== 0) this.setState({ delete: true })
+    else this.setState({ delete: false })
   }
 
   componentWillUnmount() {
@@ -228,11 +229,11 @@ class MainScreen extends Component {
       temp[a].push(newElement);
       //deletion start
       let obj = [];
-      for(let i of temp[origDate]){
-        if(i.id !== idTemp) obj.push(i)
+      for (let i of temp[origDate]) {
+        if (i.id !== idTemp) obj.push(i)
       }
       temp[origDate] = obj;
-      
+
     } else {
       let newElement = {};
       for (let i of temp[a]) {
@@ -255,8 +256,27 @@ class MainScreen extends Component {
 
   }
 
-  async handleDeletion(){
-    console.log(deletion);
+  async handleDeletion() {
+    let temp = this.state.data;
+    for (let i of deletion) {
+      temp = this.singleDelete(temp, i)
+    }
+    this.setState({ data: temp, delete: false })
+    await this.storeData("data", temp);
+    this.cleanTemp()
+  }
+
+  singleDelete(temp, id) {
+    let m = false;
+    for (let k of Object.keys(temp)) {
+      let obj = [];
+      for (let i of temp[k]) {
+        if (i.id !== id) { obj.push(i) } else { m = true; break; }
+      }
+      temp[k] = obj;
+      if (m) break;
+    }
+    return temp;
   }
 
   getOtherTabs(props) {
@@ -370,10 +390,10 @@ const CustomHeader = ({ scene, previous, navigation, data, functions, cleanTemp 
         ) : <View style={{ paddingLeft: 10 }}></View>}
 
         <Body><Title>{title}</Title></Body>
-      {deletion.length === 0 ? <Right><Button transparent iconLeft onPress={() => { navigation.navigate("Website") }}><Icon type="MaterialIcons" name='cloud-upload' /></Button></Right>
-      : <Right><Button transparent iconLeft onPress={() => { functions() }}><Icon type="MaterialIcons" name='delete' /></Button></Right>
-    }  
-      
+        {deletion.length === 0 ? <Right><Button transparent iconLeft onPress={() => { navigation.navigate("Website") }}><Icon type="MaterialIcons" name='cloud-upload' /></Button></Right>
+          : <Right><Button transparent iconLeft onPress={() => { functions() }}><Icon type="MaterialIcons" name='delete' /></Button></Right>
+        }
+
       </Header>
     );
   }
