@@ -2,7 +2,7 @@
   "expo": {
     "name": "CapitalTwo-Financial",
     "slug": "CapitalTwo-Financial",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -20,7 +20,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.capitaltwo.financial",
-      "buildNumber": "0.0.1"
+      "buildNumber": "0.1.0"
     },
     "android": {
       "package": "com.capitaltwo.financial",
