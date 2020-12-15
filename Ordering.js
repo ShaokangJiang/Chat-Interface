@@ -4,9 +4,11 @@ import DraggableFlatList from './index'
 import { Form, Item, Label, Input, Container, Picker, Content, Text, StyleProvider, Left, Title, CheckBox, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
-import { AppearanceProvider } from 'react-native-appearance';
+import materialDark from './native-base-theme/variables/material-dark';
+import { AppearanceProvider, Appearance, useColorScheme } from 'react-native-appearance';
 import { Overlay } from 'react-native-elements';
 import Modal from 'react-native-modal';
+
 class Example extends Component {
 
   state = {
@@ -65,6 +67,7 @@ class Order extends Component {
       notification: "",
     }
     this.setVisible = this.setVisible.bind(this);
+    this.testconflict = this.testconflict.bind(this);
   }
 
   setVisible() {
@@ -97,6 +100,13 @@ class Order extends Component {
               {
                 text: 'OK', onPress: () => {
                   let h = this.props.category;
+                  if(this.testconflict(false, item)){
+                    console.log(this.testconflict(false, item));
+                    Alert.alert(
+                      "Conflict found",
+                      "Be sure to remove items belongs to this category at first");
+                    return;
+                  }
                   h.Expense.splice(h.Expense.indexOf(item), 1);
                   this.props.handleModifyCategory(h);
                 }
@@ -130,6 +140,12 @@ class Order extends Component {
                 },
                 {
                   text: 'OK', onPress: () => {
+                  if(this.testconflict(true, k)){
+                    Alert.alert(
+                      "Conflict found",
+                      "Be sure to remove items belongs to this category at first");
+                    return;
+                  }
                     let h = this.props.category;
                     h.Income.splice(h.Income.indexOf(k), 1);
                     this.props.handleModifyCategory(h);
@@ -145,6 +161,17 @@ class Order extends Component {
       );
     }
     return re;
+  }
+
+  testconflict(income, category){
+    for(let k of Object.keys(this.props.data)){
+      for(let m of this.props.data[k]){
+        if(m.Income === income && m.Category.localeCompare(category) === 0){
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   render() {
@@ -187,24 +214,29 @@ class Order extends Component {
           </Fab>
           <View style={{ height: '30%' }}>
             <Modal isVisible={this.state.visible} onBackdropPress={() => { this.setVisible() }}>
-
-              <View style={{ backgroundColor: 'white', justifyContent: 'space-between', flexDirection: 'column', alignItems: 'center' }}>
+   
+              <View style={{ backgroundColor: Appearance.getColorScheme() === 'dark'? '#36454F': 'white', justifyContent: 'space-between', flexDirection: 'column', alignItems: 'center' }}>
                 <Form>
                   <Text style={{ color: 'red' }}>{this.state.notification}</Text>
                   <Item floatingLabel last style={{ paddingBottom: '3%', alignItems: 'stretch', width: '90%' }}>
-                    <Label >Name</Label>
-                    <Input onChange={(event) => this.setState({ addText: event.nativeEvent.text })} />
+                    <Label style={{color: Appearance.getColorScheme() === 'dark'? '#d3d3d3': 'white'}}>Name</Label>
+                    <Input onChange={(event) => this.setState({ addText: event.nativeEvent.text })} style={{color: Appearance.getColorScheme() === 'dark'? '#d3d3d3': 'white'}}/>
                   </Item>
                   <Item style={{ borderColor: 'transparent', marginTop: '6%' }}>
-                    <Text>{"Category:"}</Text>
+                    <Text style={{color: Appearance.getColorScheme() === 'dark'? '#d3d3d3': 'white'}}>{"Category:"}</Text>
                     <Right>
                       <Item picker >
                         <Picker
                           mode="dropdown"
                           iosIcon={<Icon name="arrow-down" />}
-                          placeholder="Pick Category"
-                          placeholderStyle={{ color: "#bfc6ea" }}
-                          placeholderIconColor="#007aff"
+                          textStyle={{ color: "#5cb85c" }}
+                          itemStyle={{
+                            backgroundColor: "#d3d3d3",
+                            marginLeft: 0,
+                            paddingLeft: 10
+                          }}
+                          itemTextStyle={{ color: '#788ad2' }}
+                          style={{ width: undefined }}
                           selectedValue={this.state.addCategory}
                           onValueChange={(value) => this.setState({ addCategory: value })}
                         >
@@ -215,7 +247,7 @@ class Order extends Component {
                   </Item>
                 </Form>
 
-                <Button block style={{ margin: '5%', marginTop: '12%' }}
+                <Button block style={{ backgroundColor: 'lightblue', margin: '5%', marginTop: '12%' }}
                   onPress={() => {
                     let h = this.props.category;
                     if (h[this.state.addCategory].indexOf(this.state.addText) === -1) {
@@ -229,7 +261,6 @@ class Order extends Component {
                   <Text>Add</Text>
                 </Button>
               </View>
-
             </Modal>
           </View>
         </Container>

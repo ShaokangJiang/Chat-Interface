@@ -7,18 +7,19 @@ export default class ThemeExample extends Component {
     render() {
 
         //need remove some field first. like data description
-        for(let i of Object.keys(this.props.data)){
-            for(let k of this.props.data[i]){
+        let temp = JSON.parse(JSON.stringify(this.props.data))
+        for(let i of Object.keys(temp)){
+            for(let k of temp[i]){
                 delete k['Description'];
             }
         }
         const runFirst = `
           window.isNativeApp = true; 
-          localStorage.setItem("budgetingData", '`+JSON.stringify(this.props.data)+`');
+          localStorage.setItem("budgetingData", '`+JSON.stringify(temp)+`');
           localStorage.setItem("budgetingCategory", '`+JSON.stringify(this.props.category)+`')
           true; // note: this is required, or you'll sometimes get silent failures
         `;
-        console.log(runFirst);
+        //console.log(runFirst);
         return (
             <View style={{ flex: 1 }}>
                 <WebView

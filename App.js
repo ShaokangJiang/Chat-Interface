@@ -98,8 +98,8 @@ class MainScreen extends Component {
   }
 
   async initialize() {
-    //await AsyncStorage.removeItem("category");
-    //await AsyncStorage.removeItem("data");
+    await AsyncStorage.removeItem("category");
+    await AsyncStorage.removeItem("data");
     let cat = await this.getData("category");
     if (cat === null) {//no item, do initialize
       let categories = {
@@ -258,7 +258,7 @@ class MainScreen extends Component {
       newElement["Title"] = tempObj.title;
       newElement["Description"] = tempObj.description;
     }
-    console.log(temp);
+    //console.log(temp);
     this.setState({ data: temp });
     await this.storeData("data", temp);
 
@@ -331,7 +331,7 @@ class MainScreen extends Component {
                   <Container>
                     <Tabs renderTabBar={() => <ScrollableTab style={{ height: '6%' }} />} initialPage={1} >
                       <Tab heading="Order" tabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }} activeTabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }}>
-                        <Ordering {...props} category={this.state.category} handleModifyCategory={this.handleModifyCategory} />
+                        <Ordering {...props} data={this.state.data} category={this.state.category} handleModifyCategory={this.handleModifyCategory} />
                       </Tab>
                       <Tab heading="Home" tabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }} activeTabStyle={{ backgroundColor: this.state.theme === 'dark' ? "#081623" : "#2b82c9" }}>
                         <Home {...props} data={this.state.data} delete={this.state.delete} deletion={this.state.deletion} setDeletion={this.setDeletion} changeTemp={this.changeTemp} changeIDtemp={this.changeIDtemp} />
@@ -350,7 +350,11 @@ class MainScreen extends Component {
                 </StyleProvider>}
             </Stack.Screen>
             <Stack.Screen name="Website" options={{ header: (props) => <CustomHeader {...props} data="website" />, title: "Yearly Budgeting Tool" }}>
-              {(props) => <Website {...props} data={this.state.data} category={this.state.category} />}
+              {(props) => 
+              <StyleProvider style={getTheme(this.state.theme === 'dark' ? materialDark : material)}>
+              <Website {...props} data={this.state.data} category={this.state.category} />
+              </StyleProvider>
+              }
             </Stack.Screen>
             <Stack.Screen name="Edit" options={{ header: (props) => <CustomHeader {...props} data="Add" functions={this.handleEditItem} cleanTemp={this.cleanTemp} /> }}>
               {(props) =>
