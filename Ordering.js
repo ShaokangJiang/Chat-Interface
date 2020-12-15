@@ -101,7 +101,7 @@ class Order extends Component {
                 text: 'OK', onPress: () => {
                   let h = this.props.category;
                   if(this.testconflict(false, item)){
-                    console.log(this.testconflict(false, item));
+                    //console.log(this.testconflict(false, item));
                     Alert.alert(
                       "Conflict found",
                       "Be sure to remove items belongs to this category at first");
