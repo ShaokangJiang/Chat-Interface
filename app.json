@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "CapitalTwo-Financial",
-    "slug": "CapitalTwo-Financial",
+    "name": "Chat-Interface",
+    "slug": "Chat-Interface",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
