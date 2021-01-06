@@ -19,46 +19,35 @@ var UniqueID = 1;
 
 let GlobalTheme;
 
+let count = 0;
+
 var IAM_access_token = Constants.manifest.extra.EXPO_IAM_access_token;
-var wsURI = 'wss://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/'+Constants.manifest.extra.EXPO_IAM_address+'/v1/recognize'
+var wsURI = 'wss://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/' + Constants.manifest.extra.EXPO_IAM_address + '/v1/recognize'
   + '?access_token=' + IAM_access_token
   + '&model=en-US_BroadbandModel';
-
+console.log(wsURI);
 var websocket = new WebSocket(wsURI);
-websocket.onopen = function (evt) { onOpen(evt) };
-websocket.onclose = function (evt) { onClose(evt) };
-websocket.onmessage = function (evt) { onMessage(evt) };
-websocket.onerror = function (evt) { onError(evt) };
-
-function onOpen(evt) {
-  var message = {
+websocket.onopen = function (evt) {
+  websocket.send(JSON.stringify({
     action: 'start'
-  };
-  websocket.send(JSON.stringify(message));
+  }));
+  console.log(evt.data);
+};
+websocket.onclose = function (evt) { console.log(evt.data) };
+websocket.onmessage = function (evt) { console.log(evt.data) };
+websocket.onerror = function (evt) { console.log(evt.data) };
 
-  // Prepare and send the audio file.
-  websocket.send(blob);
-
-  websocket.send(JSON.stringify({ action: 'stop' }));
-}
-
-function onClose(evt) {
-//  console.log(evt.data);
-}
-
-function onMessage(evt) {
-  //console.log(evt.data);
-}
-
-function onError(evt) {
-  //console.log(evt.data);
-}
+// // // Prepare and send the audio file.
+// // websocket.send(blob);
+// websocket.send(JSON.stringify({ action: 'stop' }));
 
 class MainScreen extends Component {
+
 
   constructor(props) {
     super(props);
     this.state = {
+      loading: true,
       messages: [
         {
           _id: UniqueID++,
@@ -70,8 +59,51 @@ class MainScreen extends Component {
           },
         },
       ],
-      listening: false
+      listening: false,
+      theme: Appearance.getColorScheme(),
+      recording: undefined
     }
+    this.setRecording = this.setRecording.bind(this)
+  }
+
+  setRecording(content) {
+    this.setState({ recording: content })
+  }
+
+
+  async startRecording() {
+    try {
+      console.log('Requesting permissions..');
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      console.log('Starting recording..');
+      const recording = new Audio.Recording();
+      await recording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      await recording.startAsync();
+      recording.setOnRecordingStatusUpdate((status) => {
+        count ++;
+        console.log(status)
+        if(count > 30) this.stopRecording();
+      })
+      this.setRecording(recording);
+      console.log('Recording started');
+    } catch (err) {
+      console.error('Failed to start recording', err);
+    }
+  }
+
+  async stopRecording() {
+    console.log('Stopping recording..');
+    let recording = this.state.recording;
+    this.setRecording(undefined);
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
+    console.log('Recording stopped and stored at', uri);
+    console.log(recording)
+    
   }
 
   async componentDidMount() {
@@ -83,6 +115,7 @@ class MainScreen extends Component {
     GlobalTheme = Appearance.getColorScheme();
 
     this.setState({ loading: false })
+
   }
 
   addMessage(content) {
@@ -128,8 +161,8 @@ class MainScreen extends Component {
             renderComposer={(props) => (
               <StyleProvider {...props} style={getTheme(GlobalTheme === 'dark' ? materialDark : material)}>
                 <Content style={{ height: 130, padding: 10 }}>
-                      <Body>{this.state.listening ? <><Spinner color='red' /><Text>Listening</Text></> : <><Spinner color='red' /><Text>Handling</Text></>}</Body>
-                  </Content>
+                  <Body>{this.state.listening ? <><Spinner color='red' /><Text>Listening</Text></> : <><Spinner color='red' /><Text>Handling</Text></>}</Body>
+                </Content>
               </StyleProvider>
             )}
           />
