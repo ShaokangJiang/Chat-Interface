@@ -25,19 +25,16 @@ let GlobalTheme;
 let count = 0;
 let finished = false;
 
-var IAM_access_token = Constants.manifest.extra.EXPO_IAM_access_token;
-var wsURI = 'wss://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/' + Constants.manifest.extra.EXPO_IAM_address + '/v1/recognize'
-  + '?access_token=' + IAM_access_token
-  + '&model=en-US_BroadbandModel';
-//console.log(wsURI);
+var IAM_API = Constants.manifest.extra.EXPO_IAM_access_token;
+var wsURI;
 
 function dataURItoBlob(dataURI) {
   // convert base64/URLEncoded data component to raw binary data held in a string
   var byteString;
   if (dataURI.split(',')[0].indexOf('base64') >= 0)
-      byteString = Base64.atob(dataURI.split(',')[1]);
+    byteString = Base64.atob(dataURI.split(',')[1]);
   else
-      byteString = unescape(dataURI.split(',')[1]);
+    byteString = unescape(dataURI.split(',')[1]);
 
   // separate out the mime component
   var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
@@ -45,11 +42,11 @@ function dataURItoBlob(dataURI) {
   // write the bytes of the string to a typed array
   var ia = new Uint8Array(byteString.length);
   for (var i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
+    ia[i] = byteString.charCodeAt(i);
   }
 
 
-  return new Blob([ia], {type:mimeString});
+  return new Blob([ia], { type: mimeString });
 }
 
 class MainScreen extends Component {
@@ -94,9 +91,9 @@ class MainScreen extends Component {
       const recording = new Audio.Recording();
       await recording.prepareToRecordAsync({
         android: {
-          extension: '.mp3',
+          extension: '.mp4',
           outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
-          audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_DEFAULT,
+          audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
           sampleRate: 44100,
           numberOfChannels: 2,
           bitRate: 128000,
@@ -143,10 +140,39 @@ class MainScreen extends Component {
 
 
     console.log(a)
-    var base64 = "data:audio/mp3;base64,"+a
-    console.log(dataURItoBlob(base64))
-
+    var base64 = "data:audio/mpeg;base64," + a
+    //console.log(dataURItoBlob(base64))
+    this.getRecognition(dataURItoBlob(base64));
     //use blob to pass
+  }
+
+  async getRecognition(blob) {
+    var websocket = new WebSocket(wsURI);
+    websocket.onopen = function (evt) {
+      console.log("In open")
+      var message = {
+        action: 'start'
+      };
+      websocket.send(JSON.stringify(message));
+
+      // Prepare and send the audio file.
+      websocket.send(blob);
+
+      websocket.send(JSON.stringify({ action: 'stop' }));
+    };
+    websocket.onclose = function (evt) { 
+      console.log("In close")
+      console.log(evt.data); 
+    };
+    websocket.onmessage = function (evt) { 
+      console.log("In message")
+      console.log(evt.data); 
+    };
+    websocket.onerror = function (evt) { 
+      console.log("In error")
+      console.log(evt.data); 
+    };
+
   }
 
   async componentDidMount() {
@@ -156,6 +182,24 @@ class MainScreen extends Component {
     })
     this.setState({ theme: Appearance.getColorScheme() });
     GlobalTheme = Appearance.getColorScheme();
+
+    var sev = await fetch("https://iam.cloud.ibm.com/identity/token?grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=" + IAM_API, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      method: "POST"
+    })
+    
+    var res = await sev.json();
+    //console.log(res)
+    
+    
+    wsURI = 'wss://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/' + Constants.manifest.extra.EXPO_IAM_address + '/v1/recognize'
+      + '?access_token=' + res.access_token
+      + '&model=en-US_BroadbandModel';
+    
+    //console.log(wsURI);
 
     this.setState({ loading: false })
     await this.startRecording();
