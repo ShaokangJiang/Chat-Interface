@@ -18,6 +18,8 @@ import {
   NavigationContainer
 } from '@react-navigation/native';
 
+import NlpManager from 'node-nlp-rn';
+
 var UniqueID = 1;
 
 let GlobalTheme;
@@ -145,7 +147,7 @@ class MainScreen extends Component {
     // this.getRecognition(dataURItoBlob(base64));
     //use blob to pass
 
-    
+
   }
 
   async getRecognition(blob) {
@@ -162,17 +164,17 @@ class MainScreen extends Component {
 
       websocket.send(JSON.stringify({ action: 'stop' }));
     };
-    websocket.onclose = function (evt) { 
+    websocket.onclose = function (evt) {
       console.log("In close")
-      console.log(evt.data); 
+      console.log(evt.data);
     };
-    websocket.onmessage = function (evt) { 
+    websocket.onmessage = function (evt) {
       console.log("In message")
-      console.log(evt.data); 
+      console.log(evt.data);
     };
-    websocket.onerror = function (evt) { 
+    websocket.onerror = function (evt) {
       console.log("In error")
-      console.log(evt.data); 
+      console.log(evt.data);
     };
 
   }
@@ -185,26 +187,28 @@ class MainScreen extends Component {
     this.setState({ theme: Appearance.getColorScheme() });
     GlobalTheme = Appearance.getColorScheme();
 
-    var sev = await fetch("https://iam.cloud.ibm.com/identity/token?grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=" + IAM_API, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      method: "POST"
-    })
-    
-    var res = await sev.json();
-    //console.log(res)
-    
-    
-    wsURI = 'wss://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/' + Constants.manifest.extra.EXPO_IAM_address + '/v1/recognize'
-      + '?access_token=' + res.access_token
-      + '&model=en-US_BroadbandModel';
-    
+    // var sev = await fetch("https://iam.cloud.ibm.com/identity/token?grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=" + IAM_API, {
+    //   headers: {
+    //     Accept: "application/json",
+    //     "Content-Type": "application/x-www-form-urlencoded"
+    //   },
+    //   method: "POST"
+    // })
+
+    // var res = await sev.json();
+    // //console.log(res)
+
+
+    // wsURI = 'wss://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/' + Constants.manifest.extra.EXPO_IAM_address + '/v1/recognize'
+    //   + '?access_token=' + res.access_token
+    //   + '&model=en-US_BroadbandModel';
+
     //console.log(wsURI);
 
     this.setState({ loading: false })
-    await this.startRecording();
+    // await this.startRecording();
+
+    
   }
 
   addMessage(content) {
@@ -221,6 +225,33 @@ class MainScreen extends Component {
     }];
     a = newContent.concat(a);
     this.setState({ messages: a });
+  }
+
+  generateMessage(){
+    const manager = new NlpManager({ languages: ['en'], forceNER: true });
+    // Adds the utterances and intents for the NLP
+    manager.addDocument('en', 'goodbye for now', 'greetings.bye');
+    manager.addDocument('en', 'bye bye take care', 'greetings.bye');
+    manager.addDocument('en', 'okay see you later', 'greetings.bye');
+    manager.addDocument('en', 'bye for now', 'greetings.bye');
+    manager.addDocument('en', 'i must go', 'greetings.bye');
+    manager.addDocument('en', 'hello', 'greetings.hello');
+    manager.addDocument('en', 'hi', 'greetings.hello');
+    manager.addDocument('en', 'howdy', 'greetings.hello');
+
+    // Train also the NLG
+    manager.addAnswer('en', 'greetings.bye', 'Till next time');
+    manager.addAnswer('en', 'greetings.bye', 'see you soon!');
+    manager.addAnswer('en', 'greetings.hello', 'Hey there!');
+    manager.addAnswer('en', 'greetings.hello', 'Greetings!');
+
+    // Train and save the model.
+    (async () => {
+      await manager.train();
+      manager.save();
+      const response = await manager.process('en', 'I should go now');
+      console.log(response);
+    })();
   }
 
 
