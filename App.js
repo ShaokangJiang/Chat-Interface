@@ -91,9 +91,9 @@ class MainScreen extends Component {
       const recording = new Audio.Recording();
       await recording.prepareToRecordAsync({
         android: {
-          extension: '.mp4',
-          outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
-          audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+          extension: '.wav',
+          outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_DEFAULT,
+          audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_DEFAULT,
           sampleRate: 44100,
           numberOfChannels: 2,
           bitRate: 128000,
@@ -134,16 +134,18 @@ class MainScreen extends Component {
     const uri = recording.getURI();
     console.log('Recording stopped and stored at', uri);
     //console.log(recording)
-    let a = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64
-    });
+    // let a = await FileSystem.readAsStringAsync(uri, {
+    //   encoding: FileSystem.EncodingType.Base64
+    // });
 
 
-    console.log(a)
-    var base64 = "data:audio/mpeg;base64," + a
-    //console.log(dataURItoBlob(base64))
-    this.getRecognition(dataURItoBlob(base64));
+    // console.log(a)
+    // var base64 = "data:audio/wav;base64," + a
+    // //console.log(dataURItoBlob(base64))
+    // this.getRecognition(dataURItoBlob(base64));
     //use blob to pass
+
+    
   }
 
   async getRecognition(blob) {
