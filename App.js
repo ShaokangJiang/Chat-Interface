@@ -18,7 +18,13 @@ import {
   NavigationContainer
 } from '@react-navigation/native';
 
-import NlpManager from 'node-nlp-rn';
+//import {NlpManager} from 'node-nlp-rn';
+//import { dockStart } from '@nlpjs/basic';
+import { containerBootstrap } from '@nlpjs/core';
+import { Nlp } from '@nlpjs/nlp';
+import { Ner } from '@nlpjs/ner';
+import { LangEn } from '@nlpjs/lang-en-min';
+
 
 var UniqueID = 1;
 
@@ -208,15 +214,15 @@ class MainScreen extends Component {
     this.setState({ loading: false })
     // await this.startRecording();
 
-    
+
   }
 
-  addMessage(content) {
+  async addMessage(content) {
     let a = content.concat(this.state.messages);
     this.setState({ messages: a });
     let newContent = [{
       _id: UniqueID++,
-      text: 'Hello developer',
+      text: await this.generateMessage(content.text),
       createdAt: new Date(),
       user: {
         _id: 2,
@@ -227,31 +233,41 @@ class MainScreen extends Component {
     this.setState({ messages: a });
   }
 
-  generateMessage(){
-    const manager = new NlpManager({ languages: ['en'], forceNER: true });
+  async generateMessage() {
+
+    const container = await containerBootstrap();
+    container.use(Nlp);
+    container.use(Ner);
+    container.use(LangEn);
+    const nlp = container.get('nlp');
+    nlp.settings.autoSave = false;
+    nlp.forceNER = true;
+    nlp.addLanguage('en');
     // Adds the utterances and intents for the NLP
-    manager.addDocument('en', 'goodbye for now', 'greetings.bye');
-    manager.addDocument('en', 'bye bye take care', 'greetings.bye');
-    manager.addDocument('en', 'okay see you later', 'greetings.bye');
-    manager.addDocument('en', 'bye for now', 'greetings.bye');
-    manager.addDocument('en', 'i must go', 'greetings.bye');
-    manager.addDocument('en', 'hello', 'greetings.hello');
-    manager.addDocument('en', 'hi', 'greetings.hello');
-    manager.addDocument('en', 'howdy', 'greetings.hello');
+    nlp.addDocument('en', 'goodbye for now', 'greetings.bye');
+    nlp.addDocument('en', 'bye bye take care', 'greetings.bye');
+    nlp.addDocument('en', 'okay see you later', 'greetings.bye');
+    nlp.addDocument('en', 'bye for now', 'greetings.bye');
+    nlp.addDocument('en', 'i must go', 'greetings.bye');
+    nlp.addDocument('en', 'hello', 'greetings.hello');
+    nlp.addDocument('en', 'hi', 'greetings.hello');
+    nlp.addDocument('en', 'howdy', 'greetings.hello');
 
     // Train also the NLG
-    manager.addAnswer('en', 'greetings.bye', 'Till next time');
-    manager.addAnswer('en', 'greetings.bye', 'see you soon!');
-    manager.addAnswer('en', 'greetings.hello', 'Hey there!');
-    manager.addAnswer('en', 'greetings.hello', 'Greetings!');
+    nlp.addAnswer('en', 'greetings.bye', 'Till next time');
+    nlp.addAnswer('en', 'greetings.bye', 'see you soon!');
+    nlp.addAnswer('en', 'greetings.hello', 'Hey there!');
+    nlp.addAnswer('en', 'greetings.hello', 'Greetings!');
+    await nlp.train();
+    const response = await nlp.process('en', 'I should go now');
+    console.log(response);
 
-    // Train and save the model.
-    (async () => {
-      await manager.train();
-      manager.save();
-      const response = await manager.process('en', 'I should go now');
-      console.log(response);
-    })();
+    console.log(response);
+    let entities = {}
+    for (let i of response.entities) {
+      entities[i.datetime] = i.resolution;
+    }
+    return response.answer + JSON.stringify(entities, null, 2)
   }
 
 
@@ -277,14 +293,6 @@ class MainScreen extends Component {
               _id: 1,
               name: 'User'
             }}
-            minInputToolbarHeight={140}
-            renderComposer={(props) => (
-              <StyleProvider {...props} style={getTheme(GlobalTheme === 'dark' ? materialDark : material)}>
-                <Content style={{ height: 130, padding: 10 }}>
-                  <Body>{this.state.listening ? <><Spinner color='red' /><Text>Listening</Text></> : <><Spinner color='red' /><Text>Handling</Text></>}</Body>
-                </Content>
-              </StyleProvider>
-            )}
           />
         </Container>
       </StyleProvider>
