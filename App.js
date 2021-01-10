@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container, Content, Text, Card, CardItem, StyleProvider, Spinner, H1, H2, Left, Footer, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right, Tab, Tabs, ScrollableTab } from 'native-base';
+import { Switch, Container, Content, Text, Card, CardItem, StyleProvider, Spinner, H1, H2, Left, Footer, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right, Tab, Tabs, ScrollableTab } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
 import materialDark from './native-base-theme/variables/material-dark';
@@ -33,9 +33,7 @@ const corpus = [
       "where am i talking"
     ],
     "answers": [
-      { "answer": "you're talking from console, app is {{ app }} channel is {{ channel }}", "opts": "channel==='console'" },
-      { "answer": "you're talking from directline, app is {{ app }} channel is {{ channel }}", "opts": "channel==='directline'" },
-      { "answer": "you're talking from microsoft emulator, app is {{ app }} channel is {{ channel }}", "opts": "channel==='msbf-emulator'" }
+      "you're talking with locale trained robot"
     ]
   },
   {
@@ -965,7 +963,8 @@ class MainScreen extends Component {
       listening: false,
       theme: Appearance.getColorScheme(),
       recording: undefined,
-      manager: undefined
+      manager: undefined,
+      switcher: true
     }
     this.setRecording = this.setRecording.bind(this)
   }
@@ -1131,28 +1130,72 @@ class MainScreen extends Component {
   async addMessage(content) {
     let a = content.concat(this.state.messages);
     this.setState({ messages: a });
-    let newContent = [{
+    for(let i of content){
+      a = (await this.generateMessage(i.text)).concat(a);
+    }
+    this.setState({ messages: a });
+  }
+
+  async generateMessage(input) {
+    //console.log(this.state.switcher)
+
+    const response = await this.state.manager.process(lang, input);
+    //console.log(response);
+    let message = [{
       _id: UniqueID++,
-      text: await this.generateMessage(content[0].text),
+      text: response.answer,
       createdAt: new Date(),
       user: {
         _id: 2,
         name: 'Robot'
       },
-    }];
-    a = newContent.concat(a);
-    this.setState({ messages: a });
+    }]
+
+    if (this.state.switcher && response.entities.length > 0) {
+      let tempText = "Founded Key Information:\n";
+
+      for (let i of response.entities) {
+        tempText += i.entity + " : " + this.generateRelationship(i)
+      }
+
+      message.push({
+        _id: UniqueID++,
+        text: tempText,
+        createdAt: new Date(),
+        user: {
+          _id: 2,
+          name: 'Robot'
+        },
+      })
+    }
+
+    return message
   }
 
-  async generateMessage(input) {
-
-    const response = await this.state.manager.process(lang, input);
-    console.log(response);
-    let entities = {}
-    for (let i of response.entities) {
-      entities[i.entity] = i.resolution;
+  generateRelationship(SourceObj) {
+    switch (SourceObj.entity) {
+      case "number":
+        return SourceObj.resolution.subtype + ";" + SourceObj.resolution.value
+      case "ip":
+        return SourceObj.resolution.value + ";" + SourceObj.resolution.type
+      case "percentage":
+        return SourceObj.resolution.strValue
+      case "dimension":
+      case "age":
+      case "currency":
+        return SourceObj.resolution.value + " " + SourceObj.resolution.localeUnit
+      case "date":
+        switch (SourceObj.resolution.type) {
+          case "date":
+            return SourceObj.resolution.date
+          default:
+            return SourceObj.resolution.timex
+        }
+      case "duration":
+        return SourceObj.resolution.values[0].timex +":"+ SourceObj.resolution.values[0].value + " Seconds"
+      default:
+        return SourceObj.resolution.value
     }
-    return response.answer + "\n" +JSON.stringify(entities, null, 2)
   }
 
   handleAddContent(manager) {
@@ -1180,6 +1223,10 @@ class MainScreen extends Component {
             <Body>
               <Title>Chat</Title>
             </Body>
+            <Right>
+              <Text style={{ color: "white" }}>Extract Info</Text>
+              <Switch value={this.state.switcher} onValueChange={(value) => this.setState({ switcher: value })} />
+            </Right>
           </Header>
           <GiftedChat
             messages={this.state.messages}
