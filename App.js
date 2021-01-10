@@ -24,6 +24,7 @@ import { NlpManager } from 'node-nlp-rn';
 import { containerBootstrap } from '@nlpjs/core';
 import { requestfs } from '@nlpjs/request-rn';
 
+const lang = 'en'
 const corpus = [
   {
     "intent": "agent.whereami",
@@ -946,7 +947,6 @@ function dataURItoBlob(dataURI) {
 
 class MainScreen extends Component {
 
-
   constructor(props) {
     super(props);
     this.state = {
@@ -954,17 +954,18 @@ class MainScreen extends Component {
       messages: [
         {
           _id: UniqueID++,
-          text: 'Hello developer',
+          text: 'Hello',
           createdAt: new Date(),
           user: {
             _id: 2,
-            name: 'React Native'
+            name: 'Robot'
           },
         },
       ],
       listening: false,
       theme: Appearance.getColorScheme(),
-      recording: undefined
+      recording: undefined,
+      manager: undefined
     }
     this.setRecording = this.setRecording.bind(this)
   }
@@ -1098,30 +1099,6 @@ class MainScreen extends Component {
 
     //console.log(wsURI);
 
-    this.setState({ loading: false })
-    // await this.startRecording();
-
-
-  }
-
-  async addMessage(content) {
-    let a = content.concat(this.state.messages);
-    this.setState({ messages: a });
-    let newContent = [{
-      _id: UniqueID++,
-      text: await this.generateMessage(content.text),
-      createdAt: new Date(),
-      user: {
-        _id: 2,
-        name: 'React Native'
-      },
-    }];
-    a = newContent.concat(a);
-    this.setState({ messages: a });
-  }
-
-  async generateMessage() {
-
     const manager = new NlpManager({ languages: ['en'], forceNER: true });
     // Adds the utterances and intents for the NLP
     manager.addDocument('en', 'goodbye for now', 'greetings.bye');
@@ -1141,23 +1118,53 @@ class MainScreen extends Component {
 
     // Train and save the model.
     manager.settings.autoSave = false;
+    this.handleAddContent(manager);
 
     await manager.train();
-    const response = await manager.process('en', 'I should go now');
+
+    this.setState({ manager: manager, loading: false })
+    // await this.startRecording();
+
+
+  }
+
+  async addMessage(content) {
+    let a = content.concat(this.state.messages);
+    this.setState({ messages: a });
+    let newContent = [{
+      _id: UniqueID++,
+      text: await this.generateMessage(content[0].text),
+      createdAt: new Date(),
+      user: {
+        _id: 2,
+        name: 'Robot'
+      },
+    }];
+    a = newContent.concat(a);
+    this.setState({ messages: a });
+  }
+
+  async generateMessage(input) {
+
+    const response = await this.state.manager.process(lang, input);
     console.log(response);
     let entities = {}
     for (let i of response.entities) {
       entities[i.entity] = i.resolution;
     }
-    return response.answer + JSON.stringify(entities, null, 2)
+    return response.answer + "\n" +JSON.stringify(entities, null, 2)
   }
 
-  async handleAddContent(manager){
-    for (let i of corpus){
-      
+  handleAddContent(manager) {
+    for (let i of corpus) {
+      for (let k of i.utterances) {
+        manager.addDocument(lang, k, i.intent);
+      }
+      for (let k of i.answers) {
+        manager.addAnswer(lang, i.intent, k);
+      }
     }
   }
-
 
   render() {
     //console.log("aaa")
