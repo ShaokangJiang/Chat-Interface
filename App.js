@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { Switch, Container, Content, Text, Card, CardItem, StyleProvider, Spinner, H1, H2, Left, Footer, Title, Button, Header, List, ListItem, Separator, Icon, Body, View, Fab, Right, Tab, Tabs, ScrollableTab } from 'native-base';
+import { Switch, Container, Content, Text, Card, CardItem, StyleProvider, Spinner, H1, H2, Left, Footer, Title, Button, Header, Body, View, Fab, Right, Tab, Tabs, ScrollableTab } from 'native-base';
 import getTheme from './native-base-theme/components';
 import material from './native-base-theme/variables/material';
 import materialDark from './native-base-theme/variables/material-dark';
 import Constants from 'expo-constants';
 import { Image } from 'react-native';
 import { GiftedChat, Send } from 'react-native-gifted-chat'
+import { MaterialIcons } from '@expo/vector-icons';
 import { AppearanceProvider, Appearance, useColorScheme } from 'react-native-appearance';
 import { Audio, Video } from 'expo-av';
 import { Alert } from 'react-native';
@@ -17,6 +18,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import {
   NavigationContainer
 } from '@react-navigation/native';
+import AsyncStorage from '@react-native-community/async-storage';
 
 window.process.hrtime = function () { return 0 }
 
@@ -969,6 +971,21 @@ class MainScreen extends Component {
     this.setRecording = this.setRecording.bind(this)
   }
 
+  async storeData(key, value) {
+    try {
+      await AsyncStorage.setItem(key, JSON.stringify(value));
+    } catch (e) { // saving error
+    }
+  }
+
+  async getData(key) {
+    try {
+      const value = await AsyncStorage.getItem(key)
+      return JSON.parse(value);
+    } catch (e) { // error reading value
+    }
+  }
+
   setRecording(content) {
     this.setState({ recording: content })
   }
@@ -1078,6 +1095,7 @@ class MainScreen extends Component {
       'Roboto_medium': require('native-base/Fonts/Roboto_medium.ttf'),
     })
     this.setState({ theme: Appearance.getColorScheme() });
+
     GlobalTheme = Appearance.getColorScheme();
 
     // var sev = await fetch("https://iam.cloud.ibm.com/identity/token?grant_type=urn:ibm:params:oauth:grant-type:apikey&apikey=" + IAM_API, {
@@ -1097,6 +1115,7 @@ class MainScreen extends Component {
     //   + '&model=en-US_BroadbandModel';
 
     //console.log(wsURI);
+
 
     const manager = new NlpManager({ languages: ['en'], forceNER: true });
     // Adds the utterances and intents for the NLP
@@ -1121,6 +1140,12 @@ class MainScreen extends Component {
 
     await manager.train();
 
+    let a = await this.getData("messages")
+    //console.log(a)
+    if (a) {
+      UniqueID = a.length + 1
+      this.setState({ messages: a, manager: manager, loading: false })
+    }
     this.setState({ manager: manager, loading: false })
     // await this.startRecording();
 
@@ -1130,7 +1155,7 @@ class MainScreen extends Component {
   async addMessage(content) {
     let a = content.concat(this.state.messages);
     this.setState({ messages: a });
-    for(let i of content){
+    for (let i of content) {
       a = (await this.generateMessage(i.text)).concat(a);
     }
     this.setState({ messages: a });
@@ -1138,18 +1163,9 @@ class MainScreen extends Component {
 
   async generateMessage(input) {
     //console.log(this.state.switcher)
-
+    let message = [];
     const response = await this.state.manager.process(lang, input);
     //console.log(response);
-    let message = [{
-      _id: UniqueID++,
-      text: response.answer,
-      createdAt: new Date(),
-      user: {
-        _id: 2,
-        name: 'Robot'
-      },
-    }]
 
     if (this.state.switcher && response.entities.length > 0) {
       let tempText = "Founded Key Information:\n";
@@ -1169,6 +1185,17 @@ class MainScreen extends Component {
       })
     }
 
+    message.push({
+      _id: UniqueID++,
+      text: response.answer,
+      createdAt: new Date(),
+      user: {
+        _id: 2,
+        name: 'Robot'
+      },
+    })
+
+
     return message
   }
 
@@ -1187,12 +1214,15 @@ class MainScreen extends Component {
       case "date":
         switch (SourceObj.resolution.type) {
           case "date":
-            return SourceObj.resolution.date
+            return SourceObj.resolution.strValue
           default:
             return SourceObj.resolution.timex
         }
       case "duration":
-        return SourceObj.resolution.values[0].timex +":"+ SourceObj.resolution.values[0].value + " Seconds"
+        return SourceObj.resolution.values[0].timex + ":" + SourceObj.resolution.values[0].value + " Seconds"
+      case "datetime":
+        return SourceObj.resolution.values[0].value
+
       default:
         return SourceObj.resolution.value
     }
@@ -1224,8 +1254,10 @@ class MainScreen extends Component {
               <Title>Chat</Title>
             </Body>
             <Right>
-              <Text style={{ color: "white" }}>Extract Info</Text>
-              <Switch value={this.state.switcher} onValueChange={(value) => this.setState({ switcher: value })} />
+              <Button transparent iconLeft onPress={async () => { await this.storeData("messages", this.state.messages); Alert.alert("Saved successfully") }}>
+                <MaterialIcons color="white" name='save' size={32} /></Button>
+              <Text style={{ color: "white", paddingBottom: 10 }}>Info?</Text>
+              <Switch value={this.state.switcher} style={{ paddingBottom: 20 }} onValueChange={(value) => this.setState({ switcher: value })} />
             </Right>
           </Header>
           <GiftedChat
