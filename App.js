@@ -22,7 +22,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 window.process.hrtime = function () { return 0 }
 
-import { NlpManager } from 'node-nlp-rn';
+import { NlpManager, ConversationContext } from 'node-nlp-rn';
 import { containerBootstrap } from '@nlpjs/core';
 import { requestfs } from '@nlpjs/request-rn';
 
@@ -966,7 +966,8 @@ class MainScreen extends Component {
       theme: Appearance.getColorScheme(),
       recording: undefined,
       manager: undefined,
-      switcher: true
+      switcher: true, 
+      context: undefined
     }
     this.setRecording = this.setRecording.bind(this)
   }
@@ -1137,6 +1138,7 @@ class MainScreen extends Component {
     // Train and save the model.
     manager.settings.autoSave = false;
     this.handleAddContent(manager);
+    const context = new ConversationContext();
 
     await manager.train();
 
@@ -1144,9 +1146,9 @@ class MainScreen extends Component {
     //console.log(a)
     if (a) {
       UniqueID = a.length + 1
-      this.setState({ messages: a, manager: manager, loading: false })
+      this.setState({context: context, messages: a, manager: manager, loading: false })
     }
-    this.setState({ manager: manager, loading: false })
+    this.setState({ context: context, manager: manager, loading: false })
     // await this.startRecording();
 
 
@@ -1164,7 +1166,7 @@ class MainScreen extends Component {
   async generateMessage(input) {
     //console.log(this.state.switcher)
     let message = [];
-    const response = await this.state.manager.process(lang, input);
+    const response = await this.state.manager.process(lang, input, this.state.context);
     //console.log(response);
 
     if (this.state.switcher && response.entities.length > 0) {
